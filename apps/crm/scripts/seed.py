@@ -130,14 +130,14 @@ async def seed(n: int, wipe: bool, create: bool, seed_value: int) -> None:
 
     if create:
         await create_all()
-        print("· tables ensured")
+        print("-tables ensured")
 
     sm = get_sessionmaker()
     async with sm() as session:
         if wipe:
             await session.execute(delete(Customer))  # cascades to orders/items
             await session.commit()
-            print("· wiped existing customers")
+            print("-wiped existing customers")
 
         batch: list[Customer] = []
         for i in range(n):
@@ -146,12 +146,12 @@ async def seed(n: int, wipe: bool, create: bool, seed_value: int) -> None:
                 session.add_all(batch)
                 await session.commit()
                 batch.clear()
-                print(f"· {i + 1}/{n} customers", flush=True)
+                print(f"-{i + 1}/{n} customers", flush=True)
         if batch:
             session.add_all(batch)
             await session.commit()
 
-    print(f"✓ seeded {n} customers with realistic orders")
+    print(f"[ok] seeded {n} customers with realistic orders")
 
 
 def main() -> None:
