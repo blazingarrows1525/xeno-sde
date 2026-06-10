@@ -23,7 +23,6 @@ from app.agents.tools.campaign_tools import LaunchCampaignTool
 from app.core.config import settings
 from app.core.db import get_session
 from app.models.agent import AgentRun, AgentStep
-from app.segments import compile_segment
 
 router = APIRouter(tags=["agent"])
 
@@ -44,56 +43,47 @@ def _build_llm() -> LLMClient:
     from app.agents.llm import LLMResponse, ToolCall
     return ScriptedLLM(responses=[
         LLMResponse(
-            content="Let me analyze the customer base and build a targeted segment.",
+            text="Let me analyze the customer base and build a targeted segment.",
             tool_calls=[ToolCall(
                 id="tc1",
                 name="build_segment",
                 args={"dsl": {
                     "match": "all",
                     "rules": [
-                        {"field": "last_order_at", "op": "lt", "value": "2026-04-01T00:00:00Z"},
+                        {"field": "days_since_last_order", "op": "gte", "value": 60},
                         {"field": "total_orders", "op": "gte", "value": 2},
                     ],
                 }},
             )],
         ),
         LLMResponse(
-            content="I found a good segment. Now let me propose a campaign to re-engage them.",
+            text="I found a good segment. Now let me propose a campaign to re-engage them.",
             tool_calls=[ToolCall(
                 id="tc2",
                 name="launch_campaign",
-                args={
-                    "name": "Win-back: Dormant Loyal",
-                    "channel": "whatsapp",
-                    "segment_dsl": {
-                        "match": "all",
-                        "rules": [
-                            {"field": "last_order_at", "op": "lt", "value": "2026-04-01T00:00:00Z"},
-                            {"field": "total_orders", "op": "gte", "value": 2},
-                        ],
-                    },
-                },
+                args={"campaign_id": "proposed-winback"},
             )],
         ),
         LLMResponse(
-            content="Campaign plan is ready for approval.",
+            text="Campaign plan is ready for approval.",
             tool_calls=[],
         ),
     ])
 
 
-async def _count_segment(dsl_dict: dict) -> int:
-    """Quick count for the build_segment tool — uses a fresh session."""
-    from app.segments.dsl import SegmentDSL
-    from sqlalchemy import text
+async def _count_segment(where_sql: str, params: dict) -> int:
+    """Live audience count for the build_segment tool.
 
-    parsed = SegmentDSL.model_validate(dsl_dict)
-    compiled = compile_segment(parsed)
+    Matches the tool's injected-counter contract: counter(where_sql, params) -> int.
+    The compiler already produced a parameterized WHERE clause; we bind values safely.
+    """
+    from sqlalchemy import text
     from app.core.db import get_sessionmaker
+
+    stmt = text(f"SELECT count(*) AS n FROM customers WHERE {where_sql}")
+    for k, v in params.items():
+        stmt = stmt.bindparams(**{k: v})
     async with get_sessionmaker()() as session:
-        stmt = text(compiled.count_sql())
-        for k, v in compiled.params.items():
-            stmt = stmt.bindparams(**{k: v})
         return (await session.scalar(stmt)) or 0
 
 
