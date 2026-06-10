@@ -13,6 +13,7 @@ Run once DATABASE_URL points at a Postgres:
 import argparse
 import asyncio
 import random
+import sys
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
@@ -155,6 +156,10 @@ async def seed(n: int, wipe: bool, create: bool, seed_value: int) -> None:
 
 
 def main() -> None:
+    if sys.platform == "win32":
+        # asyncpg + the Proactor loop emits noisy SSL-teardown tracebacks at interpreter exit
+        # on Windows; the selector loop avoids it and is the recommended loop for asyncpg here.
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     p = argparse.ArgumentParser(description="Seed Kairos with realistic shoppers + orders.")
     p.add_argument("--customers", type=int, default=2000)
     p.add_argument("--wipe", action="store_true", help="delete existing customers first")
