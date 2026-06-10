@@ -142,11 +142,11 @@ async def seed(n: int, wipe: bool, create: bool, seed_value: int) -> None:
         batch: list[Customer] = []
         for i in range(n):
             batch.append(_make_customer(i, fake, now))
-            if len(batch) >= 500:
+            if len(batch) >= 50:
                 session.add_all(batch)
                 await session.commit()
                 batch.clear()
-                print(f"· {i + 1}/{n} customers")
+                print(f"· {i + 1}/{n} customers", flush=True)
         if batch:
             session.add_all(batch)
             await session.commit()

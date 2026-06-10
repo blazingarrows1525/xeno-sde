@@ -12,6 +12,7 @@ what the UI streams as the glass-box reasoning trace and what we persist to `age
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 
 from app.agents.llm import LLMClient
@@ -95,7 +96,23 @@ class AgentRuntime:
                 steps.append(AgentStepRecord(step_no, "tool_result", call.name, output=output))
                 results.append({"tool_use_id": call.id, "content": output})
 
-            messages.append({"role": "assistant", "content": [c.__dict__ for c in response.tool_calls]})
-            messages.append({"role": "user", "content": results})
+            # Format for the Anthropic Messages API:
+            # Assistant turn: text blocks + tool_use blocks
+            assistant_content = []
+            if response.text:
+                assistant_content.append({"type": "text", "text": response.text})
+            for c in response.tool_calls:
+                assistant_content.append({
+                    "type": "tool_use", "id": c.id, "name": c.name, "input": c.args
+                })
+            messages.append({"role": "assistant", "content": assistant_content})
+
+            # User turn: tool_result blocks
+            tool_results = [
+                {"type": "tool_result", "tool_use_id": r["tool_use_id"],
+                 "content": json.dumps(r["content"]) if isinstance(r["content"], dict) else str(r["content"])}
+                for r in results
+            ]
+            messages.append({"role": "user", "content": tool_results})
 
         return AgentResult("max_steps", None, steps, tokens_in, tokens_out)

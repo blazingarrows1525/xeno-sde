@@ -50,16 +50,49 @@ class ScriptedLLM:
 
 
 class AnthropicLLM:
-    """Production client. Implemented against the Anthropic SDK once a key is available.
+    """Production client — calls the Anthropic Messages API via the official SDK.
 
-    Kept as a thin, clearly-marked seam so the agent architecture can be fully unit-tested now.
+    Maps the SDK response format back to our thin LLMResponse dataclass so the runtime
+    stays SDK-agnostic and fully unit-testable with ScriptedLLM.
     """
 
     def __init__(self, model: str, api_key: str):
         self.model = model
         self.api_key = api_key
+        # Lazy import — only pay the cost when we actually have a key.
+        import anthropic
+
+        self._client = anthropic.AsyncAnthropic(api_key=api_key)
 
     async def respond(self, *, system, messages, tools) -> LLMResponse:
-        raise NotImplementedError(
-            "Wire AnthropicLLM to the Anthropic SDK once ANTHROPIC_API_KEY is configured."
+        response = await self._client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            system=system,
+            messages=messages,
+            tools=tools,
+        )
+
+        text_parts: list[str] = []
+        tool_calls: list[ToolCall] = []
+
+        for block in response.content:
+            if block.type == "text":
+                text_parts.append(block.text)
+            elif block.type == "tool_use":
+                tool_calls.append(
+                    ToolCall(
+                        id=block.id,
+                        name=block.name,
+                        args=block.input if isinstance(block.input, dict) else {},
+                    )
+                )
+
+        return LLMResponse(
+            text="\n".join(text_parts) if text_parts else None,
+            tool_calls=tool_calls,
+            usage={
+                "input": response.usage.input_tokens,
+                "output": response.usage.output_tokens,
+            },
         )

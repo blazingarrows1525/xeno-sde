@@ -23,7 +23,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=settings.database_url,
+        url=settings.sqlalchemy_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -42,7 +42,11 @@ def _do_run_migrations(connection) -> None:
 
 
 async def run_migrations_online() -> None:
-    engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+    engine = create_async_engine(
+        settings.sqlalchemy_url,
+        connect_args=settings.engine_connect_args,
+        pool_pre_ping=True,
+    )
     async with engine.connect() as connection:
         await connection.run_sync(_do_run_migrations)
     await engine.dispose()

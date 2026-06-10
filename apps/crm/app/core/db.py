@@ -16,7 +16,11 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 def get_engine():
     global _engine
     if _engine is None:
-        _engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+        _engine = create_async_engine(
+            settings.sqlalchemy_url,
+            connect_args=settings.engine_connect_args,
+            pool_pre_ping=True,
+        )
     return _engine
 
 
