@@ -36,13 +36,13 @@ export default function CampaignDetailPage() {
     enabled: Boolean(id),
   });
 
-  if (isLoading || !c) return <div className="p-8 text-slate-500">Loading…</div>;
+  if (isLoading || !c) return <div className="p-4 text-slate-500 sm:p-6 lg:p-8">Loading…</div>;
   const f = c.funnel;
 
   return (
     <div>
       <PageHeader title={c.name} subtitle={c.goal} actions={<Badge tone="indigo">{c.channel}</Badge>} />
-      <div className="space-y-6 p-8">
+      <div className="space-y-5 p-4 sm:p-6 lg:space-y-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card>
             <Stat label="Delivered" value={pct(f.delivered / f.sent)} sub={`${compact(f.delivered)} of ${compact(f.sent)}`} />
@@ -94,11 +94,11 @@ export default function CampaignDetailPage() {
             {c.timeline.map((t, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-slate-800/30"
+                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm hover:bg-slate-800/30"
               >
-                <span className="text-slate-200">{t.customer}</span>
-                <span className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500">var {t.variant}</span>
+                <span className="min-w-0 truncate text-slate-200">{t.customer}</span>
+                <span className="flex shrink-0 items-center gap-2 sm:gap-3">
+                  <span className="hidden text-xs text-slate-500 sm:inline">var {t.variant}</span>
                   <Badge tone={STATE_TONE[t.state]}>{t.state}</Badge>
                   <span className="text-xs text-slate-500">{t.at}</span>
                 </span>

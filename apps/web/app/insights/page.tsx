@@ -37,7 +37,7 @@ export default function InsightsPage() {
         title="Insights"
         subtitle="Channel ROI and how the agent's predictions track reality over time."
       />
-      <div className="space-y-6 p-8">
+      <div className="space-y-5 p-4 sm:p-6 lg:space-y-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card delay={0}>
             <Stat

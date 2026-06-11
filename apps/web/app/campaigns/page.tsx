@@ -19,9 +19,10 @@ export default function CampaignsPage() {
   return (
     <div>
       <PageHeader title="Campaigns" subtitle="Every play the agent has proposed or run." />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <Card className="overflow-hidden" hover={false}>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
               <tr className="border-b border-white/[0.07]">
                 <th className="px-4 py-3 font-medium">Campaign</th>
@@ -75,6 +76,7 @@ export default function CampaignsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </Card>
       </div>
     </div>

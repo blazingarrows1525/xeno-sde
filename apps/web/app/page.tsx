@@ -182,7 +182,7 @@ export default function ConsolePage() {
         title="Agent Console"
         subtitle="State a goal. Kairos reasons, proposes a campaign with predicted ROI, and waits for your approval."
       />
-      <div className="grid gap-6 p-8 lg:grid-cols-2">
+      <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-2 lg:gap-6 lg:p-8">
         <div className="space-y-4">
           <Card className="p-5" delay={60}>
             <label className="text-xs font-medium uppercase tracking-wide text-slate-400">

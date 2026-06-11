@@ -4,7 +4,7 @@ All driven by a scripted LLM — no API key or database required.
 """
 from pydantic import BaseModel
 
-from app.agents.llm import LLMResponse, ScriptedLLM, ToolCall
+from app.agents.llm import FallbackLLM, LLMResponse, ScriptedLLM, ToolCall
 from app.agents.runtime import AgentRuntime
 from app.agents.tools.base import Tool, ToolRegistry
 from app.agents.tools.campaign_tools import LaunchCampaignTool
@@ -97,6 +97,62 @@ async def test_build_segment_tool_compiles_and_counts():
     assert out["estimated_size"] == 4182
     assert "EXTRACT(EPOCH" in out["compiled_where"]
     assert out["params"] == {"p0": 60}
+
+
+class _RaisingLLM:
+    """Fake client that always fails, optionally carrying an HTTP-style status code."""
+
+    def __init__(self, status_code: int | None = None):
+        self.status_code = status_code
+
+    async def respond(self, *, system, messages, tools) -> LLMResponse:
+        exc = RuntimeError(f"simulated failure (status={self.status_code})")
+        if self.status_code is not None:
+            exc.status_code = self.status_code  # duck-typed capacity signal
+        raise exc
+
+
+class _OkLLM:
+    def __init__(self, text: str):
+        self.text = text
+        self.calls = 0
+
+    async def respond(self, *, system, messages, tools) -> LLMResponse:
+        self.calls += 1
+        return LLMResponse(text=self.text)
+
+
+async def test_fallback_switches_models_when_primary_is_rate_limited():
+    primary = _RaisingLLM(status_code=429)  # Haiku "runs out"
+    secondary = _OkLLM("served by opus")
+    llm = FallbackLLM([primary, secondary], labels=["haiku", "opus"])
+    out = await llm.respond(system="s", messages=[], tools=[])
+    assert out.text == "served by opus"
+    assert secondary.calls == 1
+
+
+async def test_fallback_does_not_mask_a_real_request_error():
+    # A 400 is a bad request — retrying on another model fails identically, so it must raise.
+    primary = _RaisingLLM(status_code=400)
+    secondary = _OkLLM("should not be reached")
+    llm = FallbackLLM([primary, secondary])
+    try:
+        await llm.respond(system="s", messages=[], tools=[])
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("expected the 400 to propagate, not fall back")
+    assert secondary.calls == 0
+
+
+async def test_fallback_raises_last_error_when_all_models_exhausted():
+    llm = FallbackLLM([_RaisingLLM(429), _RaisingLLM(503)])
+    try:
+        await llm.respond(system="s", messages=[], tools=[])
+    except RuntimeError as exc:
+        assert "503" in str(exc)
+    else:
+        raise AssertionError("expected the final error to propagate")
 
 
 async def test_build_segment_tool_bad_dsl_surfaces_as_error_output():

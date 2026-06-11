@@ -16,7 +16,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agents.llm import AnthropicLLM, LLMClient, ScriptedLLM
+from app.agents.llm import AnthropicLLM, FallbackLLM, LLMClient, ScriptedLLM
 from app.agents.runtime import AgentRuntime
 from app.agents.tools.base import ToolRegistry
 from app.agents.tools.segment_tools import BuildSegmentTool
@@ -34,11 +34,21 @@ class AgentRequest(BaseModel):
 
 
 def _build_llm() -> LLMClient:
-    """Use real LLM if API key is set, otherwise fall back to scripted."""
+    """Real LLM when a key is set, else a scripted stand-in.
+
+    With a key we build a fallback chain: Haiku 4.5 (bulk_model) serves first for speed and
+    cost; if it is rate-limited or unavailable, Opus 4.8 (planner_model) transparently takes
+    over for that request. The SDK already retries transient 429/5xx a couple of times before
+    we even see the error, so reaching the fallback means the primary is genuinely exhausted.
+    """
     if settings.anthropic_api_key:
-        return AnthropicLLM(
-            api_key=settings.anthropic_api_key,
-            model=settings.bulk_model,
+        key = settings.anthropic_api_key
+        return FallbackLLM(
+            clients=[
+                AnthropicLLM(api_key=key, model=settings.bulk_model),
+                AnthropicLLM(api_key=key, model=settings.planner_model),
+            ],
+            labels=[settings.bulk_model, settings.planner_model],
         )
     # Fallback for demo without key
     from app.agents.llm import LLMResponse, ToolCall

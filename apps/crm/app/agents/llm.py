@@ -1,13 +1,18 @@
 """LLM client abstraction.
 
 The runtime depends only on the `LLMClient` protocol, so we can build and test the whole agent
-with a deterministic `ScriptedLLM` today and drop in the real Anthropic-backed client (Opus for
-planning, Haiku for bulk) once `ANTHROPIC_API_KEY` is configured — without touching the runtime.
+with a deterministic `ScriptedLLM` and swap in real Anthropic-backed clients once
+`ANTHROPIC_API_KEY` is set — without touching the runtime. `FallbackLLM` chains models so a
+primary (Haiku 4.5) serves first and a secondary (Opus 4.8) transparently takes over when the
+primary is rate-limited or unavailable.
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Protocol
+
+logger = logging.getLogger("kairos.llm")
 
 
 @dataclass
@@ -96,3 +101,64 @@ class AnthropicLLM:
                 "output": response.usage.output_tokens,
             },
         )
+
+
+# HTTP statuses where retrying the same request on a *different* model is worthwhile:
+# rate limits, overload, and transient server/gateway errors. (400/401/403/404/422 are
+# request-level faults that would fail identically on the fallback, so they are excluded.)
+_CAPACITY_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
+
+
+def _is_capacity_error(exc: Exception) -> bool:
+    """True when a model is exhausted or unavailable (rate-limited, overloaded, 5xx, or a
+    network failure) — i.e. the cases where falling back to another model can succeed."""
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int) and (status in _CAPACITY_STATUS or status >= 500):
+        return True
+    # Connection/timeout errors from the SDK carry no status code.
+    try:
+        import anthropic
+
+        if isinstance(exc, (anthropic.APITimeoutError, anthropic.APIConnectionError)):
+            return True
+    except ImportError:
+        pass
+    return False
+
+
+class FallbackLLM:
+    """A chain of models tried in order, behind the same `LLMClient` protocol.
+
+    The primary model serves every request; if it is rate-limited or unavailable, the next
+    model transparently takes over for that request. So Haiku 4.5 absorbs normal load and
+    Opus 4.8 steps in the moment Haiku runs out — without the runtime knowing or caring.
+
+    A non-capacity error (e.g. a malformed request) is re-raised immediately rather than
+    masked by a fallback that would fail the same way. If every model is exhausted, the last
+    error propagates.
+    """
+
+    def __init__(self, clients: list[LLMClient], labels: list[str] | None = None):
+        if not clients:
+            raise ValueError("FallbackLLM requires at least one client")
+        self._clients = clients
+        self._labels = labels or [f"model[{i}]" for i in range(len(clients))]
+
+    async def respond(self, *, system, messages, tools) -> LLMResponse:
+        last_exc: Exception | None = None
+        for i, client in enumerate(self._clients):
+            try:
+                return await client.respond(system=system, messages=messages, tools=tools)
+            except Exception as exc:
+                last_exc = exc
+                is_last = i == len(self._clients) - 1
+                if is_last or not _is_capacity_error(exc):
+                    raise
+                logger.warning(
+                    "LLM '%s' unavailable (%s); falling back to '%s'",
+                    self._labels[i],
+                    type(exc).__name__,
+                    self._labels[i + 1],
+                )
+        # The loop always returns or raises; this is unreachable but satisfies type-checkers.
+        raise last_exc  # type: ignore[misc]

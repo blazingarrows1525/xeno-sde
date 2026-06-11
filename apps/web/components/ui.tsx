@@ -94,12 +94,12 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] px-8 py-6">
-      <div className="animate-fade-up">
-        <h1 className="text-2xl font-semibold tracking-tight text-gradient">{title}</h1>
+    <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+      <div className="animate-fade-up min-w-0">
+        <h1 className="text-xl font-semibold tracking-tight text-gradient sm:text-2xl">{title}</h1>
         {subtitle ? <p className="mt-1.5 text-sm text-slate-400">{subtitle}</p> : null}
       </div>
-      {actions}
+      {actions ? <div className="shrink-0">{actions}</div> : null}
     </div>
   );
 }

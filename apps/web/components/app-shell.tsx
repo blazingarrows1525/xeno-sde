@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Megaphone, Sparkles, LogOut } from "lucide-react";
+import { BarChart3, Megaphone, Sparkles, LogOut, Menu, X } from "lucide-react";
 import type { SessionUser } from "@/lib/auth";
 
 const NAV = [
@@ -19,22 +20,75 @@ export function AppShell({
   user?: SessionUser | null;
 }) {
   const path = usePathname();
+  const [open, setOpen] = useState(false);
+
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setOpen(false);
+  }, [path]);
+
   // The login screen is full-bleed — no sidebar chrome.
   if (path === "/login") return <>{children}</>;
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col gap-1 border-r border-white/[0.06] bg-white/[0.02] p-4 backdrop-blur-xl">
-        {/* brand */}
-        <div className="mb-6 flex items-center gap-3 px-2 py-2">
-          <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/40">
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      {/* Mobile top bar — hidden on lg where the rail is always visible */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/[0.06] bg-slate-950/70 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-slate-300 transition hover:bg-white/[0.05]"
+        >
+          <Menu size={18} />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white shadow-lg shadow-indigo-500/30">
             K
-            <span className="absolute inset-0 -z-10 rounded-xl bg-indigo-500/40 blur-md" />
           </div>
-          <div>
-            <div className="font-semibold leading-tight tracking-tight text-slate-100">Kairos</div>
-            <div className="text-[11px] leading-tight text-slate-500">autonomous growth</div>
+          <span className="font-semibold tracking-tight text-slate-100">Kairos</span>
+        </div>
+        <div className="h-9 w-9" aria-hidden />
+      </header>
+
+      {/* Dimming overlay behind the drawer (mobile only) */}
+      {open ? (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          aria-hidden
+        />
+      ) : null}
+
+      {/* Sidebar — slide-out drawer on mobile, static rail on desktop.
+          The slide transform is scoped to max-lg: so at the lg breakpoint no transform utility
+          applies at all (a clean static rail), and below lg it animates the plain `transform`
+          property with literal values — Tailwind v4's translate-x utilities drive the CSS
+          `translate` longhand via an @property variable, which we avoid here. */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col gap-1 border-r border-white/[0.06] bg-slate-950/90 p-4 backdrop-blur-xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:bg-white/[0.02] ${
+          open ? "max-lg:[transform:translateX(0px)]" : "max-lg:[transform:translateX(-100%)]"
+        }`}
+      >
+        {/* brand */}
+        <div className="mb-6 flex items-center justify-between px-2 py-2">
+          <div className="flex items-center gap-3">
+            <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/40">
+              K
+              <span className="absolute inset-0 -z-10 rounded-xl bg-indigo-500/40 blur-md" />
+            </div>
+            <div>
+              <div className="font-semibold leading-tight tracking-tight text-slate-100">Kairos</div>
+              <div className="text-[11px] leading-tight text-slate-500">autonomous growth</div>
+            </div>
           </div>
+          {/* close (mobile only) */}
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+            className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200 lg:hidden"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
@@ -89,6 +143,7 @@ export function AppShell({
           <div className="px-2 text-[11px] text-slate-600">Xeno take-home · 2026</div>
         </div>
       </aside>
+
       <main className="min-w-0 flex-1">{children}</main>
     </div>
   );

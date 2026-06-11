@@ -85,7 +85,7 @@ export default async function LoginPage({
         </div>
 
         {/* sign-in panel */}
-        <div className="flex flex-col justify-center gap-5 p-8">
+        <div className="flex flex-col justify-center gap-5 p-6 sm:p-8">
           <div className="md:hidden flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-500 font-bold text-white">K</div>
             <span className="font-semibold text-slate-100">Kairos</span>
