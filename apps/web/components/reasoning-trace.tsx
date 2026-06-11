@@ -14,7 +14,7 @@ function Thinking({ label, boxed = false }: { label: string; boxed?: boolean }) 
   return (
     <div
       className={`flex items-center gap-3 ${
-        boxed ? "rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2" : ""
+        boxed ? "rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2" : ""
       }`}
     >
       <span className="flex gap-1">
@@ -56,7 +56,7 @@ export function ReasoningTrace({
           <li
             key={i}
             style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}
-            className="animate-slide-in flex gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 transition-colors hover:border-slate-700"
+            className="animate-slide-in flex gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 transition-colors hover:border-white/[0.12]"
           >
             <span
               className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md ${meta.ring}`}

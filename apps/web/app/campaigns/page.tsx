@@ -23,7 +23,7 @@ export default function CampaignsPage() {
         <Card className="overflow-hidden" hover={false}>
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
-              <tr className="border-b border-slate-800">
+              <tr className="border-b border-white/[0.07]">
                 <th className="px-4 py-3 font-medium">Campaign</th>
                 <th className="px-4 py-3 font-medium">Channel</th>
                 <th className="px-4 py-3 font-medium">Status</th>
@@ -45,7 +45,7 @@ export default function CampaignsPage() {
                   <tr
                     key={c.id}
                     style={{ animationDelay: `${i * 45}ms` }}
-                    className="animate-fade-up border-b border-slate-800/60 transition-colors hover:bg-slate-800/30"
+                    className="animate-fade-up border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
                   >
                     <td className="px-4 py-3">
                       <Link

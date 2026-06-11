@@ -184,20 +184,23 @@ export default function ConsolePage() {
       />
       <div className="grid gap-6 p-8 lg:grid-cols-2">
         <div className="space-y-4">
-          <Card className="p-4" delay={60}>
-            <label className="text-xs uppercase tracking-wide text-slate-400">Marketing goal</label>
+          <Card className="p-5" delay={60}>
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              Marketing goal
+            </label>
             <textarea
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
               rows={3}
-              className="mt-2 w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              placeholder="Describe what you want to achieve…"
+              className="mt-2 w-full resize-none rounded-xl border border-white/[0.08] bg-slate-950/60 px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-indigo-500/60 focus:ring-4 focus:ring-indigo-500/10"
             />
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((s) => (
                 <button
                   key={s}
                   onClick={() => setGoal(s)}
-                  className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:border-indigo-500"
+                  className="rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 transition hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
                 >
                   {s.length > 42 ? s.slice(0, 42) + "…" : s}
                 </button>
@@ -206,7 +209,7 @@ export default function ConsolePage() {
             <button
               onClick={run}
               disabled={running}
-              className="sheen mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
+              className="sheen mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-indigo-500/50 hover:brightness-110 disabled:opacity-60"
             >
               {running ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
               {running ? "Reasoning…" : "Run agent"}
@@ -241,7 +244,7 @@ export default function ConsolePage() {
                 <button
                   onClick={approve}
                   disabled={launching || running}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+                  className="sheen mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:brightness-110 disabled:opacity-60"
                 >
                   {launching ? (
                     <>

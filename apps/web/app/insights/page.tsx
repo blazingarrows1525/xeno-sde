@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Gauge, ArrowUpRight } from "lucide-react";
+import { Gauge, ArrowUpRight, Activity, Megaphone, BarChart3 } from "lucide-react";
 import { getCalibration, getChannelRoi, getSummary } from "@/lib/api";
 import { Card, PageHeader, Stat } from "@/components/ui";
 import { CalibrationChart, ChannelRoiChart } from "@/components/charts";
@@ -41,6 +41,7 @@ export default function InsightsPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card delay={0}>
             <Stat
+              icon={<Megaphone size={15} />}
               label="Best channel"
               value={best ? cap(best.channel) : "—"}
               sub={best ? `${roasX(best.roas)} ROAS` : "—"}
@@ -48,6 +49,7 @@ export default function InsightsPage() {
           </Card>
           <Card delay={60}>
             <Stat
+              icon={<Activity size={15} />}
               label="Avg convert"
               to={convRate * 100}
               format={(n) => `${n.toFixed(1)}%`}
@@ -56,6 +58,7 @@ export default function InsightsPage() {
           </Card>
           <Card delay={120}>
             <Stat
+              icon={<ArrowUpRight size={15} />}
               label="Revenue"
               to={sum.data?.totalRevenue ?? 0}
               format={inr}
@@ -64,6 +67,7 @@ export default function InsightsPage() {
           </Card>
           <Card delay={180}>
             <Stat
+              icon={<BarChart3 size={15} />}
               label="Campaigns run"
               to={sum.data?.totalCampaigns ?? 0}
               format={(n) => Math.round(n).toString()}

@@ -33,7 +33,7 @@ export function PlanCard({
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {kpis.map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+          <div key={k} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
             <div className="text-xs text-slate-400">{k}</div>
             <div className="mt-0.5 text-lg font-semibold text-slate-100">{v}</div>
           </div>
@@ -42,7 +42,7 @@ export function PlanCard({
 
       <div className="mt-4 space-y-2">
         {plan.variants.map((v) => (
-          <div key={v.label} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+          <div key={v.label} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
             <div className="text-xs font-semibold text-slate-400">Variant {v.label}</div>
             <div className="mt-1 text-sm text-slate-200">{v.body}</div>
           </div>
