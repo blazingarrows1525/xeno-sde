@@ -20,7 +20,7 @@ export default function CampaignsPage() {
     <div>
       <PageHeader title="Campaigns" subtitle="Every play the agent has proposed or run." />
       <div className="p-8">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden" hover={false}>
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
               <tr className="border-b border-slate-800">
@@ -41,8 +41,12 @@ export default function CampaignsPage() {
                   </td>
                 </tr>
               ) : (
-                data?.map((c: CampaignSummary) => (
-                  <tr key={c.id} className="border-b border-slate-800/60 hover:bg-slate-800/30">
+                data?.map((c: CampaignSummary, i: number) => (
+                  <tr
+                    key={c.id}
+                    style={{ animationDelay: `${i * 45}ms` }}
+                    className="animate-fade-up border-b border-slate-800/60 transition-colors hover:bg-slate-800/30"
+                  >
                     <td className="px-4 py-3">
                       <Link
                         href={`/campaigns/${c.id}`}
@@ -58,7 +62,9 @@ export default function CampaignsPage() {
                       <Badge tone="slate">{c.channel}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge tone={STATUS_TONE[c.status]}>{c.status.replace("_", " ")}</Badge>
+                      <Badge tone={STATUS_TONE[c.status]} pulse={c.status === "sending"}>
+                        {c.status.replace("_", " ")}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">{compact(c.audience)}</td>
                     <td className="px-4 py-3 text-right">{compact(c.converted)}</td>

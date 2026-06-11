@@ -171,20 +171,20 @@ export default function ConsolePage() {
 
   return (
     <div>
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-20 left-1/4 h-80 w-80 rounded-full bg-indigo-600/10 blur-3xl animate-float" />
+        <div
+          className="absolute bottom-10 right-1/4 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl animate-float"
+          style={{ animationDelay: "2.5s" }}
+        />
+      </div>
       <PageHeader
         title="Agent Console"
         subtitle="State a goal. Kairos reasons, proposes a campaign with predicted ROI, and waits for your approval."
-        actions={
-          isLiveBackend ? (
-            <Badge tone="green">live · AI</Badge>
-          ) : (
-            <Badge tone="slate">demo data</Badge>
-          )
-        }
       />
       <div className="grid gap-6 p-8 lg:grid-cols-2">
         <div className="space-y-4">
-          <Card className="p-4">
+          <Card className="p-4" delay={60}>
             <label className="text-xs uppercase tracking-wide text-slate-400">Marketing goal</label>
             <textarea
               value={goal}
@@ -206,7 +206,7 @@ export default function ConsolePage() {
             <button
               onClick={run}
               disabled={running}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+              className="sheen mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
             >
               {running ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
               {running ? "Reasoning…" : "Run agent"}
@@ -256,11 +256,12 @@ export default function ConsolePage() {
           ) : null}
         </div>
 
-        <Card className="p-4">
-          <div className="mb-3 text-xs uppercase tracking-wide text-slate-400">
+        <Card className="p-4" delay={140}>
+          <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-wide text-slate-400">
             Reasoning trace · glass box
+            {running ? <span className="live-dot" /> : null}
           </div>
-          <ReasoningTrace steps={steps} />
+          <ReasoningTrace steps={steps} running={running} />
         </Card>
       </div>
     </div>

@@ -22,7 +22,7 @@ export function PlanCard({
     ["Predicted ROAS", roasX(p.roas)],
   ];
   return (
-    <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5">
+    <div className="animate-scale-in rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wide text-indigo-300">Proposed campaign</div>
@@ -55,7 +55,7 @@ export function PlanCard({
         <button
           onClick={onApprove}
           disabled={approved}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+          className="sheen inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
         >
           <Check size={16} /> {approved ? "Approved & launched" : "Approve & launch"}
         </button>
