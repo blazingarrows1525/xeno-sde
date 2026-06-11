@@ -27,6 +27,16 @@ async function getJSON<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+async function postJSON<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+  return (await res.json()) as T;
+}
+
 // ── backend response shapes ────────────────────────────────────────────────
 interface ApiStats {
   sent: number; delivered: number; failed: number; opened: number;
@@ -187,6 +197,49 @@ export async function getSummary(): Promise<Summary> {
 export function runAgent(goal: string) {
   // Mock fallback used when NEXT_PUBLIC_API_URL is unset.
   return buildAgentRun(goal);
+}
+
+// Infer the channel the agent recommended from its plan/goal text.
+export function inferChannel(text: string): Channel {
+  const t = text.toLowerCase();
+  if (t.includes("whatsapp")) return "whatsapp";
+  if (/\bsms\b|text message|text-message/.test(t)) return "sms";
+  return "email";
+}
+
+function campaignNameFromGoal(goal: string): string {
+  const g = goal.trim().replace(/\s+/g, " ");
+  const head = g.length > 46 ? `${g.slice(0, 45).trimEnd()}…` : g;
+  return head.charAt(0).toUpperCase() + head.slice(1);
+}
+
+export interface LaunchResult {
+  id: string;
+  name: string;
+  channel: Channel;
+  status: string;
+}
+
+// Approving the agent's plan = create the proposed campaign and pass it through the
+// approval gate, so it appears in Campaigns as a live, sending campaign.
+export async function launchCampaign(input: {
+  goal: string;
+  channel: Channel;
+  audience: number;
+}): Promise<LaunchResult> {
+  const name = campaignNameFromGoal(input.goal);
+  if (!BASE) {
+    await delay(450);
+    return { id: `demo-${Date.now()}`, name, channel: input.channel, status: "sending" };
+  }
+  const created = await postJSON<{ id: string }>("/v1/campaigns", {
+    name,
+    channel: input.channel,
+    goal_text: input.goal,
+    predicted_kpis: { audience: input.audience, roas: 6.0 },
+  });
+  await postJSON(`/v1/campaigns/${created.id}/approve`, { approved_by: "operator" });
+  return { id: created.id, name, channel: input.channel, status: "sending" };
 }
 
 // A single Server-Sent Event from the live /v1/agent/run stream.

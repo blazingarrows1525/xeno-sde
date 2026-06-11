@@ -95,11 +95,12 @@ async def create_campaign(
         status="draft",
     )
     session.add(campaign)
-    # Initialize empty stats row
-    stats = CampaignStats(campaign_id=campaign.id)
-    session.add(stats)
+    # Flush first so Postgres assigns the gen_random_uuid() PK, then attach the empty
+    # stats row (its PK *is* the campaign id, so it can't be built before the flush).
     await session.flush()
+    session.add(CampaignStats(campaign_id=campaign.id))
     await session.commit()
+    await session.refresh(campaign)  # load the server-side created_at
     return CampaignOut(
         id=str(campaign.id),
         name=campaign.name,

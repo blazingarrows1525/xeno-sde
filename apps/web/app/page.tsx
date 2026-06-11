@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Check, Loader2, Sparkles } from "lucide-react";
 import {
   runAgent,
   streamAgent,
+  launchCampaign,
+  inferChannel,
   isLiveBackend,
   type AgentStreamEvent,
 } from "@/lib/api";
@@ -83,6 +85,9 @@ export default function ConsolePage() {
   const [plan, setPlan] = useState<AgentPlan | null>(null);
   const [planText, setPlanText] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const [launched, setLaunched] = useState<{ id: string; name: string } | null>(null);
+  const [audience, setAudience] = useState(0);
 
   async function run() {
     if (running) return;
@@ -91,12 +96,21 @@ export default function ConsolePage() {
     setPlan(null);
     setPlanText(null);
     setApproved(false);
+    setLaunching(false);
+    setLaunched(null);
+    setAudience(0);
 
     if (isLiveBackend) {
       try {
         await streamAgent(goal, (ev) => {
           if (ev.type === "complete") return;
           if (ev.kind === "final") setPlanText(String(ev.tool_output?.text ?? ""));
+          if (
+            ev.kind === "tool_result" &&
+            typeof ev.tool_output?.estimated_size === "number"
+          ) {
+            setAudience(ev.tool_output.estimated_size as number);
+          }
           const step = liveStepToAgentStep(ev);
           if (step) setSteps((prev) => [...prev, step]);
         });
@@ -120,6 +134,41 @@ export default function ConsolePage() {
     setRunning(false);
   }
 
+  async function approve() {
+    if (approved || launching || launched) return;
+    setApproved(true);
+    setLaunching(true);
+    setSteps((prev) => [
+      ...prev,
+      {
+        kind: "tool_call",
+        title: "Approval granted",
+        detail: "creating the campaign and passing the approval gate",
+      },
+    ]);
+    try {
+      const channel = inferChannel(planText ?? goal);
+      const res = await launchCampaign({ goal, channel, audience });
+      setLaunched({ id: res.id, name: res.name });
+      setSteps((prev) => [
+        ...prev,
+        {
+          kind: "final",
+          title: "Campaign launched",
+          detail: `“${res.name}” is now sending via ${channel}`,
+        },
+      ]);
+    } catch (e) {
+      setApproved(false);
+      setSteps((prev) => [
+        ...prev,
+        { kind: "tool_result", title: "launch failed", detail: String(e) },
+      ]);
+    } finally {
+      setLaunching(false);
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -127,7 +176,7 @@ export default function ConsolePage() {
         subtitle="State a goal. Kairos reasons, proposes a campaign with predicted ROI, and waits for your approval."
         actions={
           isLiveBackend ? (
-            <Badge tone="green">live · Claude</Badge>
+            <Badge tone="green">live · AI</Badge>
           ) : (
             <Badge tone="slate">demo data</Badge>
           )
@@ -164,26 +213,45 @@ export default function ConsolePage() {
             </button>
           </Card>
 
-          {plan ? <PlanCard plan={plan} approved={approved} onApprove={() => setApproved(true)} /> : null}
+          {plan ? <PlanCard plan={plan} approved={approved} onApprove={approve} /> : null}
 
           {planText ? (
             <Card className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <div className="text-xs uppercase tracking-wide text-slate-400">Proposed plan</div>
-                {approved ? (
+                {launched ? (
+                  <Badge tone="green">launched · sending</Badge>
+                ) : launching ? (
+                  <Badge tone="amber">launching…</Badge>
+                ) : approved ? (
                   <Badge tone="green">approved</Badge>
                 ) : (
                   <Badge tone="amber">awaiting approval</Badge>
                 )}
               </div>
               <AgentPlanText text={planText} />
-              <button
-                onClick={() => setApproved(true)}
-                disabled={approved || running}
-                className="mt-4 w-full rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
-              >
-                {approved ? "Approved — ready to launch" : "Approve & launch"}
-              </button>
+              {launched ? (
+                <a
+                  href="/campaigns"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/25"
+                >
+                  <Check size={16} /> Launched — view in Campaigns
+                </a>
+              ) : (
+                <button
+                  onClick={approve}
+                  disabled={launching || running}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
+                >
+                  {launching ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Launching…
+                    </>
+                  ) : (
+                    "Approve & launch"
+                  )}
+                </button>
+              )}
             </Card>
           ) : null}
         </div>
