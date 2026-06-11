@@ -81,6 +81,10 @@ class Settings(BaseSettings):
     channel_service_url: str = "http://localhost:8001"
     receipt_hmac_secret: str = "dev-secret-change-me"
 
+    # Comma-separated allowed CORS origins (the deployed web app). Any *.vercel.app
+    # preview is additionally allowed via regex in main.py.
+    cors_origins: str = "http://localhost:3000"
+
     # Safety rails for the agent
     agent_max_steps: int = 16
     agent_max_tokens: int = 120_000

@@ -1,0 +1,38 @@
+# Render Blueprint — deploys the two Kairos FastAPI services as Docker web services.
+# The Next.js web app deploys separately on Vercel (root directory: apps/web).
+# See DEPLOY.md for the full walkthrough.
+#
+# After "New > Blueprint" picks this up, set the three CRM secrets marked `sync: false`
+# (DATABASE_URL, ANTHROPIC_API_KEY, CORS_ORIGINS). Everything else is generated/defaulted.
+services:
+  - type: web
+    name: kairos-crm
+    runtime: docker
+    plan: free
+    region: singapore            # next to the Neon ap-southeast-1 database
+    dockerfilePath: apps/crm/Dockerfile
+    dockerContext: apps/crm
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL          # Neon pooler connection string
+        sync: false
+      - key: ANTHROPIC_API_KEY     # for the live agent (Haiku 4.5)
+        sync: false
+      - key: CORS_ORIGINS          # your Vercel URL, e.g. https://kairos-web.vercel.app
+        sync: false
+      - key: RECEIPT_HMAC_SECRET
+        generateValue: true
+
+  - type: web
+    name: kairos-channel
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: apps/channel/Dockerfile
+    dockerContext: apps/channel
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: HMAC_SECRET           # match the CRM's RECEIPT_HMAC_SECRET when wiring the send loop
+        generateValue: true
