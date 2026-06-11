@@ -20,7 +20,7 @@ that's already migrated and seeded, so there's no migration step at deploy time.
    |-----|-------|
    | `DATABASE_URL` | your Neon **pooler** connection string (`postgresql://…?sslmode=require`) |
    | `ANTHROPIC_API_KEY` | `sk-ant-…` |
-   | `CORS_ORIGINS` | your Vercel URL (fill in after step 2, e.g. `https://kairos-web.vercel.app`) |
+   | `CORS_ORIGINS` | leave as `http://localhost:3000` — `app/main.py` already admits any `*.vercel.app` origin via regex, so a Vercel frontend works without touching this |
 
    `RECEIPT_HMAC_SECRET` (CRM) and `HMAC_SECRET` (channel) are auto-generated. `kairos-channel`
    needs no manual config.
@@ -41,8 +41,9 @@ that's already migrated and seeded, so there's no migration step at deploy time.
 
 ## 3. Close the loop
 
-Set the CRM's `CORS_ORIGINS` (Render → kairos-crm → Environment) to your Vercel URL and let it
-redeploy. The web app's "live · Claude" badge confirms it's talking to the backend.
+The web app's **"live · Claude"** badge confirms it's talking to the backend. CORS already works
+out of the box for `*.vercel.app` (regex in `app/main.py`). Only if you serve the frontend from a
+**custom domain** do you need to add it to the CRM's `CORS_ORIGINS` (comma-separated) and redeploy.
 
 ## Run the containers locally (optional)
 
