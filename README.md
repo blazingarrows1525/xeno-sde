@@ -12,7 +12,7 @@
 </p>
 
 > ⏳ The API is on a free Render tier and sleeps after ~15 min idle — the **first** request may
-> cold-start for 30–60s, then it's instant. The agent runs on live Claude against a live Neon
+> cold-start for 30–60s, then it's instant. The agent runs on a live LLM against a live Neon
 > Postgres with 200 seeded shoppers and 6 campaigns.
 
 Built for the **Xeno Engineering Take-Home (2026)**.
@@ -40,16 +40,16 @@ and *visibly gets smarter* every campaign.
 ## Architecture
 
 ```
-  Next.js 14 (Vercel)                  FastAPI · CRM core (Render)              Neon Postgres
-  ┌────────────────────┐   HTTPS /     ┌───────────────────────────────┐   asyncpg   ┌──────────┐
-  │  Agent Console     │──── SSE ─────▶│ agent loop ─ Claude (Haiku 4.5)│────SSL─────▶│ customers│
-  │  Campaigns + detail │              │ Segment DSL → parameterized SQL│             │ orders   │
-  │  Insights / ROI     │◀─── JSON ────│ campaigns · analytics · events │             │ campaigns│
-  └────────────────────┘              └───────────────┬───────────────┘             │ messages │
-                                                       │ HMAC-signed receipts        └──────────┘
-                                                       ▼
-                                       FastAPI · Channel Service (Render)
-                                       delivery simulator + async event callbacks
+  Next.js 16 (Vercel)                 FastAPI · CRM core (Render)             Neon Postgres
+  ┌─────────────────────┐  HTTPS      ┌──────────────────────────────┐  asyncpg  ┌───────────┐
+  │ Agent Console        │── SSE ────▶│ agent loop · tool-use LLM    │── SSL ──▶│ customers  │
+  │ Campaigns + detail   │            │ Segment DSL → parameterized  │           │ orders     │
+  │ Insights / ROI       │◀── JSON ───│ campaigns · analytics · events│          │ campaigns  │
+  └─────────────────────┘            └──────────────┬───────────────┘           │ messages   │
+                                                     │ HMAC-signed receipts       └───────────┘
+                                                     ▼
+                                      FastAPI · Channel Service (Render)
+                                      delivery simulator + async event callbacks
 ```
 
 **Layered & auditable:** `api → service → repository → model`. The LLM only ever emits
@@ -71,7 +71,7 @@ apps/
     scripts/    seed generators (customers/orders, campaigns/stats/messages)
     tests/      38 unit tests (DSL compiler, state machine, agent runtime, models, API)
   channel/    FastAPI — stubbed Channel Service (delivery lifecycle + HMAC callbacks)
-  web/        Next.js 14 — Agent Console, Campaign detail, Insights
+  web/        Next.js 16 — Agent Console, Campaign detail, Insights, OAuth login
 render.yaml   Render Blueprint (both FastAPI services)   ·   DEPLOY.md — full walkthrough
 ```
 
@@ -85,17 +85,18 @@ whole safety story.
 
 | Layer | Choice |
 |---|---|
-| Frontend | Next.js 14 (App Router), TypeScript, Recharts |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, Recharts |
 | Backend | FastAPI × 2 (CRM core + Channel Service), SQLAlchemy (async) |
 | Database | PostgreSQL (Neon, `ap-southeast-1`), asyncpg over SSL |
-| AI | Claude **Haiku 4.5** via the Anthropic API, streamed tool-use loop |
+| AI | Frontier LLM via API — streamed tool-use loop; the model only ever emits validated DSL, never raw SQL |
+| Auth | OAuth sign-in (Google / GitHub) with a one-tap demo entry |
 | Deploy | Vercel (web) · Render (both APIs, Singapore) · Neon (DB) — all free tier |
 
 ---
 
 ## Run it locally (Windows / PowerShell)
 
-Two servers against the same live Neon + Claude. Secrets live in `apps/crm/.env` (gitignored):
+Two servers against the same live Neon + LLM. Secrets live in `apps/crm/.env` (gitignored):
 `DATABASE_URL` (Neon pooler string) and `ANTHROPIC_API_KEY`.
 
 **1 — CRM API** → http://127.0.0.1:8000
@@ -116,7 +117,7 @@ npm run dev
 ```
 
 > Without `NEXT_PUBLIC_API_URL` the UI falls back to mock data — the Agent Console shows a
-> **"live · Claude"** vs **"demo data"** badge so you always know which you're looking at.
+> **"live · AI"** vs **"demo data"** badge so you always know which you're looking at.
 
 **Seed data** (first run only):
 ```powershell
@@ -150,7 +151,7 @@ the CRM. CORS for `*.vercel.app` is already handled in `app/main.py`.
 
 ## Status
 
-Live in production: the **agent loop** (real Claude, streamed), **campaigns**, **campaign detail**
+Live in production: the **agent loop** (real LLM, streamed), **campaigns**, **campaign detail**
 (funnel · A/B variants · timeline), and **Insights** (channel ROI · calibration). The next
 increment is wiring the live **send → receipt** loop end-to-end through the Channel Service;
 today the converging calibration is demonstrated from seeded campaign events. The full design,

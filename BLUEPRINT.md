@@ -4,7 +4,7 @@
 
 > **Thesis:** Most candidates will build "a CRM with a *Generate message* button." We build an **autonomous growth marketer** that runs a continuous **Plan → Act → Learn loop**, keeps a human in the approval seat, and *visibly gets smarter* every campaign. The closed learning loop mirrors the assignment's own channel-callback loop — that symmetry is the story.
 
-**Stack at a glance:** Next.js 14 + FastAPI (two services) + PostgreSQL + Redis Streams + Claude (Opus 4.8 planner / Haiku 4.5 bulk) · all on free tiers.
+**Stack at a glance:** Next.js + FastAPI (two services) + PostgreSQL + a frontier LLM (planner + bulk tiers) · all on free tiers.
 **Build window:** June 9 → submit before 12 PM June 15, 2026 (5 working days + buffer).
 
 ---
@@ -52,7 +52,7 @@
 | Evaluation axis (from the brief) | How Kairos wins it |
 |---|---|
 | **Creativity in scoping** | One bold bet — *autonomous-but-supervised growth agent* — built deep, not ten features built shallow. Explicit cut list (Appendix B). |
-| **AI-native development** | AI is the **control plane**, not a button. Plus a documented **AI-native dev workflow** (spec-first with Claude Code, generated tests, AI self-review). |
+| **AI-native development** | AI is the **control plane**, not a button. Plus a documented **AI-native dev workflow** (spec-first with an AI coding assistant, generated tests, AI self-review). |
 | **Code quality & structure** | Clean layered FastAPI (api → service → repository → model); the LLM only ever emits **schema-validated DSL**, so AI output is auditable and testable. |
 | **System design & scalability** | The channel loop is modeled seriously: idempotency keys, monotonic event sequencing, state-machine ordering, retries + DLQ, event-sourced stats. Explicit 10k → 100k → 1M plan. |
 | **Communication clarity** | A 6-min video built around one unforgettable demo: type a goal → watch a **glass-box agent** reason → approve → watch events stream back → watch predictions calibrate. |
@@ -257,8 +257,8 @@ flowchart LR
     end
 
     subgraph AI["AI plane"]
-        OPUS[Claude Opus 4.8<br/>planning/reasoning]
-        HAIKU[Claude Haiku 4.5<br/>bulk personalization]
+        OPUS[LLM · planner tier<br/>planning/reasoning]
+        HAIKU[LLM · bulk tier<br/>bulk personalization]
     end
 
     UI <--> API
@@ -285,7 +285,7 @@ flowchart LR
 | **Two services** | CRM + Channel Service as **separate deployments** | The brief makes this explicit. Separate repos-in-monorepo + separate deploys make the boundary real, not a function call. |
 | **Database** | PostgreSQL | Relational shopper/order data; window functions power RFM; JSONB stores the Segment DSL + event payloads. One store, no premature polyglot. |
 | **Async** | **Redis Streams** for receipt ingestion (consumer groups = ordering + at-least-once + replay); lightweight Redis queue for outbound fan-out | Streams give us ordered, idempotent, replayable event ingestion *without* Kafka's ops cost. I'd graduate to Kafka at ~1M (see §14). **No Kubernetes** — free-tier PaaS is enough at this scale. |
-| **AI** | Claude **Opus 4.8** (planner) + **Haiku 4.5** (bulk) | Opus for multi-step reasoning quality; Haiku for cheap, fast per-recipient fills. Tiering by task = cost control as a *design* choice, not an afterthought. |
+| **AI** | A **frontier LLM** in two tiers — **planner** + **bulk** | Planner tier for multi-step reasoning quality; bulk tier for cheap, fast per-recipient fills. Tiering by task = cost control as a *design* choice, not an afterthought. |
 
 ---
 
@@ -905,7 +905,7 @@ flowchart LR
 - Open `agents/tools/` — one typed tool; show `launch_campaign` refusing without approval.
 
 **[4:00–5:00] AI-native workflow.**
-- "AI is in the product *and* in how I built it." Show: a written spec → Claude Code generating the DSL + tests → me reviewing/correcting tool schemas → AI-assisted migration + seed script. "I direct it, review every diff, and own every line — happy to defend any of it."
+- "AI is in the product *and* in how I built it." Show: a written spec → an AI coding assistant generating the DSL + tests → me reviewing/correcting tool schemas → AI-assisted migration + seed script. "I direct it, review every diff, and own every line — happy to defend any of it."
 
 **[5:00–6:00] Close — what I chose NOT to build, and scale.**
 - The cut list (no multi-tenant auth, no real providers, no drag-drop builder) — "depth over breadth, on purpose."
@@ -949,7 +949,7 @@ flowchart LR
 **Tradeoffs & meta**
 22. *What would you do differently with two more weeks?* — Holdout-group lift measurement, multi-step journeys (not single sends), a proper segment-builder UI, model evals for the agent.
 23. *Where's the weakest part?* — Predictions are cold-start until priors accumulate; I seed reasonable defaults and show the confidence band honestly.
-24. *How did you use AI to build this?* — Spec-first with Claude Code; generated the DSL + tests; reviewed every diff; AI-assisted migrations/seed. I own and can defend every line.
+24. *How did you use AI to build this?* — Spec-first with an AI coding assistant; generated the DSL + tests; reviewed every diff; AI-assisted migrations/seed. I own and can defend every line.
 25. *If a callback arrives for an unknown message_id?* — Stored as an orphan event + flagged; never crashes the consumer; reconciled by a sweep job.
 
 ---
@@ -997,7 +997,7 @@ flowchart LR
 *(An explicit evaluation axis the brief calls out — and most candidates forget to narrate.)*
 
 - **Spec-first.** This blueprint is the spec; each module starts as a short written contract before code.
-- **AI generates, I direct & review.** Claude Code scaffolds the DSL, tools, and tests from the spec; I review every diff, correct tool schemas and edge cases, and own the result.
+- **AI generates, I direct & review.** An AI coding assistant scaffolds the DSL, tools, and tests from the spec; I review every diff, correct tool schemas and edge cases, and own the result.
 - **Tests as the AI's guardrail.** The DSL compiler and receipt consumer are TDD'd — AI-written tests + my adversarial cases (duplicate, out-of-order, illegal transition).
 - **AI for the grunt work.** Migrations, the realistic seed generator, type-safe API clients, and refactors.
 - **Self-review pass.** A `/code-review`-style pass over the diff before each deploy.

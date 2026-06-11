@@ -29,5 +29,5 @@ Thumbs.db
 # Logs
 *.log
 
-# Claude Code local (personal) settings
-.claude/settings.local.json
+# Local tooling / editor state
+.tooling/

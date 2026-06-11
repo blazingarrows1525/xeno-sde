@@ -33,15 +33,31 @@ that's already migrated and seeded, so there's no migration step at deploy time.
 
 1. Vercel → **Add New > Project** → import the same repo.
 2. Set **Root Directory** to `apps/web` (Next.js is auto-detected).
-3. Add an environment variable:
+3. Add environment variables (only the first is required):
    | Key | Value |
    |-----|-------|
    | `NEXT_PUBLIC_API_URL` | your CRM URL from step 1, e.g. `https://kairos-crm.onrender.com` |
+   | `NEXT_PUBLIC_BASE_URL` | your Vercel URL (used for OAuth callbacks), e.g. `https://kairos-web.vercel.app` |
+   | `AUTH_SECRET` | any long random string (signs the session cookie) |
 4. **Deploy**. Copy the resulting URL.
+
+### Login / OAuth
+
+The app is gated by a sign-in screen. It always offers a **one-tap demo workspace** (no
+account, no config), so the live deployment is reviewable out of the box. To enable real OAuth,
+set a provider's credentials and register its callback URL:
+
+| Provider | Vercel env vars | Callback URL to register |
+|----------|-----------------|--------------------------|
+| Google | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `<base>/api/auth/callback/google` |
+| GitHub | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | `<base>/api/auth/callback/github` |
+
+(`<base>` = your `NEXT_PUBLIC_BASE_URL`.) A provider's button only appears wired when its
+credentials are present; otherwise users continue with the demo workspace.
 
 ## 3. Close the loop
 
-The web app's **"live · Claude"** badge confirms it's talking to the backend. CORS already works
+The web app's **"live · AI"** badge confirms it's talking to the backend. CORS already works
 out of the box for `*.vercel.app` (regex in `app/main.py`). Only if you serve the frontend from a
 **custom domain** do you need to add it to the CRM's `CORS_ORIGINS` (comma-separated) and redeploy.
 
