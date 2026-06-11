@@ -156,6 +156,34 @@ export async function getCalibration(): Promise<CalibrationPoint[]> {
   }));
 }
 
+export interface Summary {
+  totalCustomers: number;
+  totalCampaigns: number;
+  totalSent: number;
+  totalConverted: number;
+  totalRevenue: number;
+  avgRoas: number;
+}
+
+export async function getSummary(): Promise<Summary> {
+  if (!BASE) {
+    await delay(120);
+    return { totalCustomers: 2000, totalCampaigns: 6, totalSent: 243, totalConverted: 15, totalRevenue: 39300, avgRoas: 5.9 };
+  }
+  const s = await getJSON<{
+    total_customers: number; total_campaigns: number; total_sent: number;
+    total_converted: number; total_revenue: number; avg_roas: number;
+  }>("/v1/analytics/summary");
+  return {
+    totalCustomers: s.total_customers,
+    totalCampaigns: s.total_campaigns,
+    totalSent: s.total_sent,
+    totalConverted: s.total_converted,
+    totalRevenue: s.total_revenue,
+    avgRoas: s.avg_roas,
+  };
+}
+
 export function runAgent(goal: string) {
   // Mock fallback used when NEXT_PUBLIC_API_URL is unset.
   return buildAgentRun(goal);
