@@ -22,6 +22,7 @@ async def channel_roi(session: AsyncSession = Depends(get_session)) -> list[dict
             func.sum(CampaignStats.send_cost).label("cost"),
             func.count(Campaign.id).label("campaigns"),
             func.sum(CampaignStats.sent).label("sent"),
+            func.sum(CampaignStats.delivered).label("delivered"),
             func.sum(CampaignStats.converted).label("converted"),
         )
         .join(CampaignStats, CampaignStats.campaign_id == Campaign.id)
@@ -33,15 +34,19 @@ async def channel_roi(session: AsyncSession = Depends(get_session)) -> list[dict
         cost = float(r.cost) if r.cost else 0
         rev = float(r.revenue) if r.revenue else 0
         roas = round(rev / cost, 2) if cost > 0 else 0
+        sent = r.sent or 0
         result.append({
             "channel": r.channel,
             "revenue": rev,
             "cost": cost,
             "roas": roas,
             "campaigns": r.campaigns,
-            "sent": r.sent or 0,
+            "sent": sent,
+            "delivered": r.delivered or 0,
             "converted": r.converted or 0,
         })
+    # Best ROAS first — the Insights chart highlights the top channel.
+    result.sort(key=lambda x: x["roas"], reverse=True)
     return result
 
 

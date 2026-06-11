@@ -7,7 +7,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -187,16 +187,8 @@ async def get_campaign(
         select(
             Message.variant,
             func.count(Message.id).label("total"),
-            func.sum(func.cast(
-                func.case(
-                    (Message.current_state == "clicked", 1), else_=0
-                ), type_=func.count(Message.id).type
-            )).label("clicked"),
-            func.sum(func.cast(
-                func.case(
-                    (Message.current_state == "converted", 1), else_=0
-                ), type_=func.count(Message.id).type
-            )).label("converted"),
+            func.sum(case((Message.current_state == "clicked", 1), else_=0)).label("clicked"),
+            func.sum(case((Message.current_state == "converted", 1), else_=0)).label("converted"),
         )
         .where(Message.campaign_id == uuid.UUID(campaign_id))
         .group_by(Message.variant)
