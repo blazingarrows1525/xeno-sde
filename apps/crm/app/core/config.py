@@ -6,10 +6,15 @@ dependency. Real values come from `.env` (see `.env.example`) in deployment.
 from __future__ import annotations
 
 import ssl
+from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Resolve apps/crm/.env from this file's location so settings load regardless of the
+# process working directory (uvicorn, alembic, the preview launcher, deploys).
+_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 def normalize_database_url(raw: str) -> tuple[str, dict]:
@@ -61,7 +66,7 @@ def normalize_database_url(raw: str) -> tuple[str, dict]:
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=str(_ENV_FILE), extra="ignore")
 
     app_name: str = "Kairos CRM"
     environment: str = "local"

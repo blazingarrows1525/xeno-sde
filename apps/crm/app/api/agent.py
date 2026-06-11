@@ -6,6 +6,7 @@ POST /v1/agent/run  { "goal": "..." }
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 from datetime import datetime, timezone
@@ -104,12 +105,13 @@ async def run_agent(req: AgentRequest) -> StreamingResponse:
     )
 
     async def event_stream():
-        result = await runtime.run(req.goal, approved=req.approved)
-        for step in result.steps:
-            data = {
-                "kind": step.type,
-                "step_no": step.step_no,
-            }
+        # Stream each reasoning step the moment the agent produces it (genuine glass box).
+        last_kind = "max_steps"
+        steps_taken = 0
+        async for step in runtime.run_stream(req.goal, approved=req.approved):
+            last_kind = step.type
+            steps_taken += 1
+            data = {"kind": step.type, "step_no": step.step_no}
             if step.tool_name:
                 data["tool"] = step.tool_name
             if step.input:
@@ -117,15 +119,12 @@ async def run_agent(req: AgentRequest) -> StreamingResponse:
             if step.output:
                 data["tool_output"] = step.output
             yield f"data: {json.dumps(data, default=str)}\n\n"
+            await asyncio.sleep(0.2)  # smooth the reveal in the UI
 
-        # Final summary event
-        summary = {
-            "type": "complete",
-            "status": result.status,
-            "steps_taken": len(result.steps),
-            "final_text": result.final_text,
-        }
-        yield f"data: {json.dumps(summary, default=str)}\n\n"
+        status = {"final": "completed", "awaiting_approval": "awaiting_approval"}.get(
+            last_kind, "max_steps"
+        )
+        yield f"data: {json.dumps({'type': 'complete', 'status': status, 'steps_taken': steps_taken})}\n\n"
 
     return StreamingResponse(
         event_stream(),
