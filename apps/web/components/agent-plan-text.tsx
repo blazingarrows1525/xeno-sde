@@ -22,7 +22,7 @@ export function AgentPlanText({ text }: { text: string }) {
         if (!line.trim()) return <div key={i} className="h-2" />;
         if (/^#{1,6}\s/.test(line)) {
           return (
-            <div key={i} className="mb-1 mt-3 text-sm font-semibold text-indigo-200">
+            <div key={i} className="mb-1 mt-3 text-sm font-semibold text-emerald-200">
               {renderInline(line.replace(/^#{1,6}\s*/, ""))}
             </div>
           );
@@ -33,7 +33,7 @@ export function AgentPlanText({ text }: { text: string }) {
         if (/^\s*[-*]\s+/.test(line)) {
           return (
             <div key={i} className="flex gap-2 text-sm text-slate-300">
-              <span className="text-indigo-400">•</span>
+              <span className="text-emerald-400">•</span>
               <span>{renderInline(line.replace(/^\s*[-*]\s+/, ""))}</span>
             </div>
           );

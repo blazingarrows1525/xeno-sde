@@ -4,10 +4,10 @@ import type { AgentStep } from "@/lib/types";
 
 const META: Record<AgentStep["kind"], { icon: LucideIcon; tone: string; ring: string }> = {
   thought: { icon: Brain, tone: "text-sky-300", ring: "bg-sky-500/15" },
-  tool_call: { icon: Wrench, tone: "text-indigo-300", ring: "bg-indigo-500/15" },
+  tool_call: { icon: Wrench, tone: "text-cyan-300", ring: "bg-cyan-500/15" },
   tool_result: { icon: CheckCircle2, tone: "text-emerald-300", ring: "bg-emerald-500/15" },
   plan: { icon: FileText, tone: "text-amber-300", ring: "bg-amber-500/15" },
-  final: { icon: Sparkles, tone: "text-violet-300", ring: "bg-violet-500/15" },
+  final: { icon: Sparkles, tone: "text-teal-300", ring: "bg-teal-500/15" },
 };
 
 function Thinking({ label, boxed = false }: { label: string; boxed?: boolean }) {
@@ -21,7 +21,7 @@ function Thinking({ label, boxed = false }: { label: string; boxed?: boolean }) 
         {[0, 1, 2].map((d) => (
           <span
             key={d}
-            className="h-1.5 w-1.5 rounded-full bg-indigo-400"
+            className="h-1.5 w-1.5 rounded-full bg-emerald-400"
             style={{ animation: `thinkingDot 1.2s ${d * 0.16}s infinite ease-in-out` }}
           />
         ))}
@@ -43,7 +43,7 @@ export function ReasoningTrace({
       <Thinking label="Reading your goal and analysing the shopper base…" />
     ) : (
       <div className="grid place-items-center gap-2 rounded-xl border border-dashed border-white/[0.08] px-6 py-10 text-center">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/10 text-indigo-300">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-300">
           <Brain size={18} />
         </span>
         <p className="text-sm text-slate-400">
@@ -74,7 +74,7 @@ export function ReasoningTrace({
             <div className="min-w-0">
               <div className="text-sm">
                 {step.tool ? (
-                  <span className="font-mono text-xs text-indigo-300">{step.tool}</span>
+                  <span className="font-mono text-xs text-teal-300">{step.tool}</span>
                 ) : (
                   <span className="font-medium text-slate-200">{step.title}</span>
                 )}

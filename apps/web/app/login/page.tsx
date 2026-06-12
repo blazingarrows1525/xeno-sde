@@ -47,7 +47,7 @@ function ShieldIcon() {
 const PREVIEW_STEPS = [
   {
     icon: <Wrench size={13} />,
-    ring: "bg-indigo-500/15 text-indigo-300",
+    ring: "bg-teal-500/15 text-teal-300",
     title: "segment.preview",
     mono: true,
     detail: "inactive_days > 60 AND lifetime_spend ≥ 8000",
@@ -60,7 +60,7 @@ const PREVIEW_STEPS = [
   },
   {
     icon: <Sparkles size={13} />,
-    ring: "bg-violet-500/15 text-violet-300",
+    ring: "bg-sky-500/15 text-sky-300",
     title: "Plan ready — 3.2× predicted ROAS",
     detail: "held for your approval",
   },
@@ -88,7 +88,7 @@ function TracePreview() {
             <span className="min-w-0">
               <span
                 className={`block truncate text-xs ${
-                  s.mono ? "font-mono text-indigo-300" : "font-medium text-slate-200"
+                  s.mono ? "font-mono text-teal-300" : "font-medium text-slate-200"
                 }`}
               >
                 {s.title}
@@ -113,23 +113,23 @@ export default async function LoginPage({
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
       {/* calm ambient accents over the global aurora */}
-      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-indigo-600/15 blur-3xl" />
-      <div aria-hidden className="animate-float pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-emerald-600/15 blur-3xl" />
+      <div aria-hidden className="animate-float pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-teal-500/10 blur-3xl" />
       <div
         aria-hidden
-        className="animate-float pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-violet-600/10 blur-3xl"
+        className="animate-float pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-sky-600/10 blur-3xl"
         style={{ animationDelay: "3s" }}
       />
 
       {/* gradient hairline frame */}
       <div className="animate-scale-in relative w-full max-w-4xl rounded-3xl bg-gradient-to-br from-white/[0.14] via-white/[0.04] to-white/[0.1] p-px shadow-2xl shadow-black/60">
-        <div className="grid overflow-hidden rounded-[calc(1.5rem-1px)] bg-[#090b18]/90 backdrop-blur-2xl md:grid-cols-2">
+        <div className="grid overflow-hidden rounded-[calc(1.5rem-1px)] bg-[#0b0d0c]/90 backdrop-blur-2xl md:grid-cols-2">
           {/* brand panel */}
-          <div className="hidden flex-col justify-between gap-8 border-r border-white/[0.06] bg-gradient-to-br from-indigo-600/[0.12] via-transparent to-emerald-500/[0.08] p-8 md:flex">
+          <div className="hidden flex-col justify-between gap-8 border-r border-white/[0.06] bg-gradient-to-br from-emerald-600/[0.12] via-transparent to-sky-500/[0.07] p-8 md:flex">
             <div className="flex items-center gap-3">
-              <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/40">
+              <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-lg font-bold text-white shadow-lg shadow-emerald-500/40">
                 K
-                <span aria-hidden className="absolute inset-0 -z-10 rounded-xl bg-indigo-500/40 blur-md" />
+                <span aria-hidden className="absolute inset-0 -z-10 rounded-xl bg-emerald-500/40 blur-md" />
               </div>
               <div>
                 <div className="font-semibold leading-tight tracking-tight text-slate-100">Kairos</div>
@@ -148,7 +148,7 @@ export default async function LoginPage({
                   <ShieldIcon /> Every launch waits for your approval.
                 </li>
                 <li className="flex items-center gap-2">
-                  <ArrowRight size={15} className="text-fuchsia-400" /> Predictions that calibrate over time.
+                  <ArrowRight size={15} className="text-sky-400" /> Predictions that calibrate over time.
                 </li>
               </ul>
             </div>
@@ -159,7 +159,7 @@ export default async function LoginPage({
           {/* sign-in panel */}
           <div className="flex flex-col justify-center gap-5 p-6 sm:p-8">
             <div className="flex items-center gap-2.5 md:hidden">
-              <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 font-bold text-white shadow-lg shadow-indigo-500/30">
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 font-bold text-white shadow-lg shadow-emerald-500/30">
                 K
               </div>
               <span className="font-semibold tracking-tight text-slate-100">Kairos</span>
@@ -218,7 +218,7 @@ export default async function LoginPage({
               >
                 <button
                   type="submit"
-                  className="btn-tactile sheen flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110"
+                  className="btn-tactile sheen flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:brightness-110"
                 >
                   Enter demo workspace
                   <ArrowRight size={16} className="icon-nudge" />

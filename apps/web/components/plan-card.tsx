@@ -22,10 +22,10 @@ export function PlanCard({
     ["Predicted ROAS", roasX(p.roas)],
   ];
   return (
-    <div className="animate-scale-in rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5">
+    <div className="animate-scale-in rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs uppercase tracking-wide text-indigo-300">Proposed campaign</div>
+          <div className="text-xs uppercase tracking-wide text-emerald-300">Proposed campaign</div>
           <h3 className="mt-1 text-lg font-semibold text-slate-100">{plan.segmentName}</h3>
         </div>
         <Badge tone="indigo">{plan.channel}</Badge>

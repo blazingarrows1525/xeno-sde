@@ -34,7 +34,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Mobile top bar — hidden on lg where the rail is always visible */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/[0.06] bg-slate-950/70 px-4 py-3 backdrop-blur-xl lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/[0.06] bg-zinc-950/70 px-4 py-3 backdrop-blur-xl lg:hidden">
         <button
           onClick={() => setOpen(true)}
           aria-label="Open menu"
@@ -43,7 +43,7 @@ export function AppShell({
           <Menu size={18} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white shadow-lg shadow-indigo-500/30">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-lg shadow-emerald-500/30">
             K
           </div>
           <span className="font-semibold tracking-tight text-slate-100">Kairos</span>
@@ -66,16 +66,16 @@ export function AppShell({
           property with literal values — Tailwind v4's translate-x utilities drive the CSS
           `translate` longhand via an @property variable, which we avoid here. */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col gap-1 border-r border-white/[0.06] bg-slate-950/90 p-4 backdrop-blur-xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:bg-white/[0.02] ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col gap-1 border-r border-white/[0.06] bg-zinc-950/90 p-4 backdrop-blur-xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:bg-white/[0.02] ${
           open ? "max-lg:[transform:translateX(0px)]" : "max-lg:[transform:translateX(-100%)]"
         }`}
       >
         {/* brand */}
         <div className="mb-6 flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-3">
-            <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/40">
+            <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-lg font-bold text-white shadow-lg shadow-emerald-500/40">
               K
-              <span className="absolute inset-0 -z-10 rounded-xl bg-indigo-500/40 blur-md" />
+              <span className="absolute inset-0 -z-10 rounded-xl bg-emerald-500/40 blur-md" />
             </div>
             <div>
               <div className="font-semibold leading-tight tracking-tight text-slate-100">Kairos</div>
@@ -104,17 +104,17 @@ export function AppShell({
               href={href}
               className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                 active
-                  ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/[0.06] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                  ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/[0.06] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
                   : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
               }`}
             >
               {active ? (
-                <span className="nav-indicator absolute left-0 top-1/2 h-5 w-0.5 rounded-r bg-gradient-to-b from-indigo-400 to-violet-400" />
+                <span className="nav-indicator absolute left-0 top-1/2 h-5 w-0.5 rounded-r bg-gradient-to-b from-emerald-400 to-teal-400" />
               ) : null}
               <Icon
                 size={18}
                 className={`transition-transform duration-200 group-hover:[transform:translateX(2px)] ${
-                  active ? "text-indigo-300" : "text-slate-500 group-hover:text-slate-300"
+                  active ? "text-emerald-300" : "text-slate-500 group-hover:text-slate-300"
                 }`}
               />
               {label}
@@ -126,7 +126,7 @@ export function AppShell({
           {user ? (
             <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-2.5 backdrop-blur-xl">
               <div className="flex items-center gap-2.5">
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
                   {user.name?.[0]?.toUpperCase() ?? "U"}
                 </div>
                 <div className="min-w-0">

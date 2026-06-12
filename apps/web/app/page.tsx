@@ -183,9 +183,9 @@ export default function ConsolePage() {
   return (
     <div>
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-20 left-1/4 h-80 w-80 rounded-full bg-indigo-600/10 blur-3xl animate-float" />
+        <div className="absolute -top-20 left-1/4 h-80 w-80 rounded-full bg-emerald-600/10 blur-3xl animate-float" />
         <div
-          className="absolute bottom-10 right-1/4 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl animate-float"
+          className="absolute bottom-10 right-1/4 h-80 w-80 rounded-full bg-sky-500/10 blur-3xl animate-float"
           style={{ animationDelay: "2.5s" }}
         />
       </div>
@@ -204,7 +204,7 @@ export default function ConsolePage() {
               onChange={(e) => setGoal(e.target.value)}
               rows={3}
               placeholder="Describe what you want to achieve…"
-              className="mt-2 w-full resize-none rounded-xl border border-white/[0.08] bg-slate-950/60 px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-indigo-500/60 focus:ring-4 focus:ring-indigo-500/10"
+              className="mt-2 w-full resize-none rounded-xl border border-white/[0.08] bg-zinc-950/60 px-3.5 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/10"
             />
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((s) => (
@@ -219,7 +219,7 @@ export default function ConsolePage() {
                 >
                   <button
                     onClick={() => setGoal(s.goal)}
-                    className="btn-tactile rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
+                    className="btn-tactile rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-200"
                   >
                     {s.goal.length > 42 ? s.goal.slice(0, 42) + "…" : s.goal}
                   </button>

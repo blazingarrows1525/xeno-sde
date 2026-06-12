@@ -6,7 +6,7 @@ type ButtonVariant = "primary" | "ghost" | "success";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "sheen bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110",
+    "sheen bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:brightness-110",
   ghost:
     "border border-white/[0.08] bg-white/[0.03] text-slate-200 hover:border-white/[0.18] hover:bg-white/[0.06]",
   success: "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25",
@@ -148,9 +148,9 @@ export function Badge({
     slate: "bg-white/[0.06] text-slate-300 ring-1 ring-inset ring-white/[0.08]",
     green: "bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/20",
     amber: "bg-amber-500/15 text-amber-300 ring-1 ring-inset ring-amber-500/20",
-    indigo: "bg-indigo-500/15 text-indigo-300 ring-1 ring-inset ring-indigo-500/25",
+    indigo: "bg-sky-500/15 text-sky-300 ring-1 ring-inset ring-sky-500/25",
     red: "bg-red-500/15 text-red-300 ring-1 ring-inset ring-red-500/20",
-    violet: "bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-500/25",
+    violet: "bg-teal-500/15 text-teal-300 ring-1 ring-inset ring-teal-500/25",
   };
   return (
     <span

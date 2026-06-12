@@ -60,7 +60,7 @@ export default function CampaignsPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/campaigns/${c.id}`}
-                        className="font-medium text-slate-100 hover:text-indigo-300"
+                        className="font-medium text-slate-100 hover:text-emerald-300"
                       >
                         {c.name}
                       </Link>
