@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles, Wrench } from "lucide-react";
 import { providers } from "@/lib/auth";
 
 const ERRORS: Record<string, string> = {
@@ -42,6 +42,65 @@ function ShieldIcon() {
   );
 }
 
+// A miniature of the real reasoning trace — the product demos itself on the door.
+const PREVIEW_STEPS = [
+  {
+    icon: <Wrench size={13} />,
+    ring: "bg-indigo-500/15 text-indigo-300",
+    title: "segment.preview",
+    mono: true,
+    detail: "inactive_days > 60 AND lifetime_spend ≥ 8000",
+  },
+  {
+    icon: <CheckCircle2 size={13} />,
+    ring: "bg-emerald-500/15 text-emerald-300",
+    title: "1,284 customers match",
+    detail: "compiled to parameterized SQL",
+  },
+  {
+    icon: <Sparkles size={13} />,
+    ring: "bg-violet-500/15 text-violet-300",
+    title: "Plan ready — 3.2× predicted ROAS",
+    detail: "held for your approval",
+  },
+];
+
+function TracePreview() {
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 backdrop-blur-xl">
+      <div className="mb-2.5 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          Live reasoning trace
+        </span>
+        <span className="live-dot" />
+      </div>
+      <ol className="space-y-1.5">
+        {PREVIEW_STEPS.map((s, i) => (
+          <li
+            key={i}
+            style={{ animationDelay: `${0.6 + i * 0.55}s` }}
+            className="animate-slide-in flex items-start gap-2.5 rounded-lg border border-white/[0.05] bg-white/[0.02] px-2.5 py-1.5"
+          >
+            <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md ${s.ring}`}>
+              {s.icon}
+            </span>
+            <span className="min-w-0">
+              <span
+                className={`block truncate text-xs ${
+                  s.mono ? "font-mono text-indigo-300" : "font-medium text-slate-200"
+                }`}
+              >
+                {s.title}
+              </span>
+              <span className="block truncate text-[11px] text-slate-500">{s.detail}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -51,94 +110,117 @@ export default async function LoginPage({
   const error = sp.e ? ERRORS[sp.e] ?? "Something went wrong. Try the demo workspace." : null;
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4">
-      {/* animated ambient glow */}
-      <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-indigo-600/30 blur-3xl animate-pulse" />
-      <div className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl animate-pulse [animation-delay:1.2s]" />
-      <div className="pointer-events-none absolute top-1/3 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-fuchsia-600/10 blur-3xl animate-pulse [animation-delay:.6s]" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      {/* calm ambient accents over the global aurora */}
+      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-indigo-600/15 blur-3xl" />
+      <div aria-hidden className="animate-float pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
+      <div
+        aria-hidden
+        className="animate-float pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-violet-600/10 blur-3xl"
+        style={{ animationDelay: "3s" }}
+      />
 
-      <div className="relative grid w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-2xl backdrop-blur md:grid-cols-2">
-        {/* brand panel */}
-        <div className="hidden flex-col justify-between border-r border-slate-800 bg-gradient-to-br from-indigo-600/15 via-slate-900/0 to-emerald-500/10 p-8 md:flex">
-          <div className="flex items-center gap-2">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500 text-lg font-bold text-white shadow-lg shadow-indigo-500/30">
-              K
+      {/* gradient hairline frame */}
+      <div className="animate-scale-in relative w-full max-w-4xl rounded-3xl bg-gradient-to-br from-white/[0.14] via-white/[0.04] to-white/[0.1] p-px shadow-2xl shadow-black/60">
+        <div className="grid overflow-hidden rounded-[calc(1.5rem-1px)] bg-[#090b18]/90 backdrop-blur-2xl md:grid-cols-2">
+          {/* brand panel */}
+          <div className="hidden flex-col justify-between gap-8 border-r border-white/[0.06] bg-gradient-to-br from-indigo-600/[0.12] via-transparent to-emerald-500/[0.08] p-8 md:flex">
+            <div className="flex items-center gap-3">
+              <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/40">
+                K
+                <span aria-hidden className="absolute inset-0 -z-10 rounded-xl bg-indigo-500/40 blur-md" />
+              </div>
+              <div>
+                <div className="font-semibold leading-tight tracking-tight text-slate-100">Kairos</div>
+                <div className="text-xs leading-tight text-slate-500">autonomous growth</div>
+              </div>
             </div>
-            <div>
-              <div className="font-semibold leading-tight text-slate-100">Kairos</div>
-              <div className="text-xs leading-tight text-slate-400">autonomous growth</div>
+
+            <div className="space-y-5">
+              <h2 className="text-balance text-2xl font-semibold leading-tight tracking-tight text-slate-100">
+                The AI marketer that <span className="text-gradient">reasons in the open.</span>
+              </h2>
+              <TracePreview />
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li className="flex items-center gap-2">
+                  <ShieldIcon /> Every launch waits for your approval.
+                </li>
+                <li className="flex items-center gap-2">
+                  <ArrowRight size={15} className="text-fuchsia-400" /> Predictions that calibrate over time.
+                </li>
+              </ul>
             </div>
+
+            <div className="text-xs text-slate-600">Xeno Engineering Take-Home · 2026</div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold leading-tight text-slate-100">
-              The AI marketer that<br />reasons in the open.
-            </h2>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li className="flex items-center gap-2"><Sparkles size={15} className="text-indigo-400" /> State a goal — watch it plan, live.</li>
-              <li className="flex items-center gap-2"><ShieldIcon /> Every launch waits for your approval.</li>
-              <li className="flex items-center gap-2"><ArrowRight size={15} className="text-fuchsia-400" /> Predictions that calibrate over time.</li>
-            </ul>
-          </div>
-
-          <div className="text-xs text-slate-600">Xeno Engineering Take-Home · 2026</div>
-        </div>
-
-        {/* sign-in panel */}
-        <div className="flex flex-col justify-center gap-5 p-6 sm:p-8">
-          <div className="md:hidden flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-500 font-bold text-white">K</div>
-            <span className="font-semibold text-slate-100">Kairos</span>
-          </div>
-
-          <div>
-            <h1 className="text-xl font-semibold text-slate-100">Welcome back</h1>
-            <p className="mt-1 text-sm text-slate-400">Sign in to open the agent console.</p>
-          </div>
-
-          {error ? (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-              {error}
+          {/* sign-in panel */}
+          <div className="flex flex-col justify-center gap-5 p-6 sm:p-8">
+            <div className="flex items-center gap-2.5 md:hidden">
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 font-bold text-white shadow-lg shadow-indigo-500/30">
+                K
+              </div>
+              <span className="font-semibold tracking-tight text-slate-100">Kairos</span>
             </div>
-          ) : null}
 
-          <div className="space-y-2.5">
-            <Link
-              href="/api/auth/start/google"
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-slate-600 hover:bg-slate-800"
+            <div className="animate-fade-up" style={{ animationDelay: "80ms" }}>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-100">Welcome back</h1>
+              <p className="mt-1 text-sm text-slate-400">Sign in to open the agent console.</p>
+            </div>
+
+            {error ? (
+              <div className="animate-fade-up rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-300">
+                {error}
+              </div>
+            ) : null}
+
+            <div className="animate-fade-up space-y-2.5" style={{ animationDelay: "140ms" }}>
+              <Link
+                href="/api/auth/start/google"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-white/[0.18] hover:bg-white/[0.06] active:scale-[0.99]"
+              >
+                <GoogleIcon /> Continue with Google
+              </Link>
+              <Link
+                href="/api/auth/start/github"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-white/[0.18] hover:bg-white/[0.06] active:scale-[0.99]"
+              >
+                <GithubIcon /> Continue with GitHub
+              </Link>
+            </div>
+
+            <div
+              className="animate-fade-up flex items-center gap-3 text-xs text-slate-600"
+              style={{ animationDelay: "200ms" }}
             >
-              <GoogleIcon /> Continue with Google
-            </Link>
-            <Link
-              href="/api/auth/start/github"
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-slate-600 hover:bg-slate-800"
+              <div className="h-px flex-1 bg-white/[0.07]" />
+              or
+              <div className="h-px flex-1 bg-white/[0.07]" />
+            </div>
+
+            {/* Always-available demo entry — keeps the live deployment reviewable. */}
+            <form action="/api/auth/demo" method="post" className="animate-fade-up" style={{ animationDelay: "260ms" }}>
+              <button
+                type="submit"
+                className="sheen group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-indigo-500/50 hover:brightness-110 active:scale-[0.99]"
+              >
+                Enter demo workspace
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:[transform:translateX(3px)]"
+                />
+              </button>
+            </form>
+
+            <p
+              className="animate-fade-up text-center text-[11px] text-slate-500"
+              style={{ animationDelay: "320ms" }}
             >
-              <GithubIcon /> Continue with GitHub
-            </Link>
+              {providers.google || providers.github
+                ? "OAuth is live. The demo workspace needs no account."
+                : "No account needed — the demo workspace opens the full app."}
+            </p>
           </div>
-
-          <div className="flex items-center gap-3 text-xs text-slate-600">
-            <div className="h-px flex-1 bg-slate-800" />
-            or
-            <div className="h-px flex-1 bg-slate-800" />
-          </div>
-
-          {/* Always-available demo entry — keeps the live deployment reviewable. */}
-          <form action="/api/auth/demo" method="post">
-            <button
-              type="submit"
-              className="group flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400"
-            >
-              Enter demo workspace
-              <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
-            </button>
-          </form>
-
-          <p className="text-center text-[11px] text-slate-500">
-            {providers.google || providers.github
-              ? "OAuth is live. The demo workspace needs no account."
-              : "No account needed — the demo workspace opens the full app."}
-          </p>
         </div>
       </div>
     </div>

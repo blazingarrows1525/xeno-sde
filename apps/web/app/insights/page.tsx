@@ -3,15 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Gauge, ArrowUpRight, Activity, Megaphone, BarChart3 } from "lucide-react";
 import { getCalibration, getChannelRoi, getSummary } from "@/lib/api";
-import { Card, PageHeader, Stat } from "@/components/ui";
+import { Card, ChartSkeleton, PageHeader, Stat } from "@/components/ui";
 import { CalibrationChart, ChannelRoiChart } from "@/components/charts";
 import { CountUp } from "@/components/count-up";
 import { AccuracyRing } from "@/components/accuracy-ring";
 import { inr, roasX } from "@/lib/format";
 
-function Loading() {
-  return <div className="grid h-[260px] place-items-center text-sm text-slate-500">Loading…</div>;
-}
+const Loading = () => <ChartSkeleton />;
 
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 const errOf = (p: { predictedRoas: number; actualRoas: number }) =>

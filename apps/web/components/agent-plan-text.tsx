@@ -28,7 +28,7 @@ export function AgentPlanText({ text }: { text: string }) {
           );
         }
         if (/^---+$/.test(line.trim())) {
-          return <hr key={i} className="my-3 border-slate-800" />;
+          return <hr key={i} className="my-3 border-white/[0.07]" />;
         }
         if (/^\s*[-*]\s+/.test(line)) {
           return (

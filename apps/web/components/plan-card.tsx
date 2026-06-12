@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import type { AgentPlan } from "@/lib/types";
 import { compact, inr, pct, roasX } from "@/lib/format";
-import { Badge } from "./ui";
+import { Badge, Button } from "./ui";
 
 export function PlanCard({
   plan,
@@ -52,13 +52,9 @@ export function PlanCard({
       <p className="mt-3 text-xs text-slate-400">{plan.rationale}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          onClick={onApprove}
-          disabled={approved}
-          className="sheen inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
-        >
+        <Button onClick={onApprove} disabled={approved}>
           <Check size={16} /> {approved ? "Approved & launched" : "Approve & launch"}
-        </button>
+        </Button>
         {approved ? (
           <Badge tone="green">sending through channel service</Badge>
         ) : (

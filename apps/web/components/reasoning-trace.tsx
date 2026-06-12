@@ -42,9 +42,17 @@ export function ReasoningTrace({
     return running ? (
       <Thinking label="Reading your goal and analysing the shopper base…" />
     ) : (
-      <p className="text-sm text-slate-500">
-        {"The agent's reasoning will stream here, step by step."}
-      </p>
+      <div className="grid place-items-center gap-2 rounded-xl border border-dashed border-white/[0.08] px-6 py-10 text-center">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/10 text-indigo-300">
+          <Brain size={18} />
+        </span>
+        <p className="text-sm text-slate-400">
+          {"The agent's reasoning streams here, step by step."}
+        </p>
+        <p className="text-xs text-slate-600">
+          Every tool call, segment query and decision — fully inspectable.
+        </p>
+      </div>
     );
   }
   return (

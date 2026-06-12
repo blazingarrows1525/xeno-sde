@@ -18,11 +18,13 @@ import {
 import type { CalibrationPoint, ChannelRoi, FunnelStat } from "@/lib/types";
 
 const tooltipStyle = {
-  background: "#0f172a",
-  border: "1px solid #1e293b",
-  borderRadius: 8,
+  background: "rgba(10, 12, 24, 0.92)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: 10,
   color: "#e2e8f0",
   fontSize: 12,
+  boxShadow: "0 12px 32px -12px rgba(0, 0, 0, 0.6)",
+  backdropFilter: "blur(8px)",
 };
 
 export function FunnelChart({ funnel }: { funnel: FunnelStat }) {

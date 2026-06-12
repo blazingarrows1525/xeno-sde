@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { listCampaigns } from "@/lib/api";
 import type { CampaignSummary } from "@/lib/types";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card, PageHeader, Skeleton } from "@/components/ui";
 import { compact, inr, roasX } from "@/lib/format";
 
 const STATUS_TONE = {
@@ -36,11 +36,20 @@ export default function CampaignsPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
-                    Loading…
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="border-b border-white/[0.04]">
+                    <td className="px-4 py-4">
+                      <Skeleton className="h-4 w-44" />
+                      <Skeleton className="mt-2 h-3 w-60" />
+                    </td>
+                    <td className="px-4 py-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-5 w-24 rounded-full" /></td>
+                    <td className="px-4 py-4"><Skeleton className="ml-auto h-4 w-12" /></td>
+                    <td className="px-4 py-4"><Skeleton className="ml-auto h-4 w-10" /></td>
+                    <td className="px-4 py-4"><Skeleton className="ml-auto h-4 w-16" /></td>
+                    <td className="px-4 py-4"><Skeleton className="ml-auto h-4 w-10" /></td>
+                  </tr>
+                ))
               ) : (
                 data?.map((c: CampaignSummary, i: number) => (
                   <tr
@@ -67,10 +76,10 @@ export default function CampaignsPage() {
                         {c.status.replace("_", " ")}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right">{compact(c.audience)}</td>
-                    <td className="px-4 py-3 text-right">{compact(c.converted)}</td>
-                    <td className="px-4 py-3 text-right">{inr(c.revenue)}</td>
-                    <td className="px-4 py-3 text-right">{c.roas ? roasX(c.roas) : "—"}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{compact(c.audience)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{compact(c.converted)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{inr(c.revenue)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{c.roas ? roasX(c.roas) : "—"}</td>
                   </tr>
                 ))
               )}

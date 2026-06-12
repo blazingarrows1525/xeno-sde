@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import {
   runAgent,
   streamAgent,
@@ -11,7 +11,7 @@ import {
   type AgentStreamEvent,
 } from "@/lib/api";
 import type { AgentPlan, AgentStep } from "@/lib/types";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, PageHeader } from "@/components/ui";
 import { ReasoningTrace } from "@/components/reasoning-trace";
 import { PlanCard } from "@/components/plan-card";
 import { AgentPlanText } from "@/components/agent-plan-text";
@@ -200,20 +200,21 @@ export default function ConsolePage() {
                 <button
                   key={s}
                   onClick={() => setGoal(s)}
-                  className="rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 transition hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
+                  className="rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 transition hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200 active:scale-95"
                 >
                   {s.length > 42 ? s.slice(0, 42) + "…" : s}
                 </button>
               ))}
             </div>
-            <button
-              onClick={run}
-              disabled={running}
-              className="sheen mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-indigo-500/50 hover:brightness-110 disabled:opacity-60"
-            >
-              {running ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-              {running ? "Reasoning…" : "Run agent"}
-            </button>
+            <Button onClick={run} loading={running} className="mt-4">
+              {running ? (
+                "Reasoning…"
+              ) : (
+                <>
+                  <Sparkles size={16} /> Run agent
+                </>
+              )}
+            </Button>
           </Card>
 
           {plan ? <PlanCard plan={plan} approved={approved} onApprove={approve} /> : null}
@@ -236,24 +237,20 @@ export default function ConsolePage() {
               {launched ? (
                 <a
                   href="/campaigns"
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/25"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/25"
                 >
                   <Check size={16} /> Launched — view in Campaigns
                 </a>
               ) : (
-                <button
+                <Button
                   onClick={approve}
-                  disabled={launching || running}
-                  className="sheen mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:brightness-110 disabled:opacity-60"
+                  disabled={running}
+                  loading={launching}
+                  fullWidth
+                  className="mt-4"
                 >
-                  {launching ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" /> Launching…
-                    </>
-                  ) : (
-                    "Approve & launch"
-                  )}
-                </button>
+                  {launching ? "Launching…" : "Approve & launch"}
+                </Button>
               )}
             </Card>
           ) : null}

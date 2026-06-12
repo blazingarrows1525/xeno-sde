@@ -1,5 +1,63 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { Loader2 } from "lucide-react";
 import { CountUp } from "./count-up";
+
+type ButtonVariant = "primary" | "ghost" | "success";
+
+const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
+  primary:
+    "sheen bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110",
+  ghost:
+    "border border-white/[0.08] bg-white/[0.03] text-slate-200 hover:border-white/[0.18] hover:bg-white/[0.06]",
+  success: "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25",
+};
+
+export function Button({
+  children,
+  variant = "primary",
+  loading = false,
+  fullWidth = false,
+  className = "",
+  disabled,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  loading?: boolean;
+  fullWidth?: boolean;
+}) {
+  return (
+    <button
+      disabled={disabled || loading}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.985] disabled:pointer-events-none disabled:opacity-55 ${
+        BUTTON_VARIANTS[variant]
+      } ${fullWidth ? "w-full" : ""} ${className}`}
+      {...rest}
+    >
+      {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+      {children}
+    </button>
+  );
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div aria-hidden className={`skeleton rounded-lg ${className}`} />;
+}
+
+/** Loading placeholder shaped like a bar chart, so charts don't pop in from nothing. */
+export function ChartSkeleton({ height = 260 }: { height?: number }) {
+  const bars = [42, 68, 55, 82, 60, 90, 72, 48];
+  return (
+    <div aria-hidden style={{ height }} className="flex items-end gap-3 px-2 pb-2">
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="skeleton w-full rounded-t-md"
+          style={{ height: `${h}%`, animationDelay: `${i * 90}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function Card({
   children,

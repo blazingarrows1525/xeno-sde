@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getCampaign } from "@/lib/api";
 import type { EventType } from "@/lib/types";
-import { Badge, Card, PageHeader, Stat } from "@/components/ui";
+import { Badge, Card, PageHeader, Skeleton, Stat } from "@/components/ui";
 import { FunnelChart } from "@/components/charts";
 import { compact, inr, pct, roasX } from "@/lib/format";
 
@@ -36,25 +36,46 @@ export default function CampaignDetailPage() {
     enabled: Boolean(id),
   });
 
-  if (isLoading || !c) return <div className="p-4 text-slate-500 sm:p-6 lg:p-8">Loading…</div>;
+  if (isLoading || !c)
+    return (
+      <div>
+        <div className="border-b border-white/[0.06] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+          <Skeleton className="h-7 w-64 max-w-full" />
+          <Skeleton className="mt-2.5 h-4 w-96 max-w-full" />
+        </div>
+        <div className="space-y-5 p-4 sm:p-6 lg:space-y-6 lg:p-8">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-2xl" />
+            ))}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Skeleton className="h-80 rounded-2xl" />
+            <Skeleton className="h-80 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
   const f = c.funnel;
+  // Campaigns that haven't sent yet have an all-zero funnel — never show NaN%.
+  const rate = (n: number) => (f.sent ? pct(n / f.sent) : "—");
 
   return (
     <div>
       <PageHeader title={c.name} subtitle={c.goal} actions={<Badge tone="indigo">{c.channel}</Badge>} />
       <div className="space-y-5 p-4 sm:p-6 lg:space-y-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Card>
-            <Stat label="Delivered" value={pct(f.delivered / f.sent)} sub={`${compact(f.delivered)} of ${compact(f.sent)}`} />
+          <Card delay={0}>
+            <Stat label="Delivered" value={rate(f.delivered)} sub={`${compact(f.delivered)} of ${compact(f.sent)}`} />
           </Card>
-          <Card>
-            <Stat label="Clicked" value={pct(f.clicked / f.sent)} sub={`${compact(f.clicked)} clicks`} />
+          <Card delay={60}>
+            <Stat label="Clicked" value={rate(f.clicked)} sub={`${compact(f.clicked)} clicks`} />
           </Card>
-          <Card>
-            <Stat label="Converted" value={compact(f.converted)} sub={`${pct(f.converted / f.sent)} of sent`} />
+          <Card delay={120}>
+            <Stat label="Converted" value={compact(f.converted)} sub={f.sent ? `${pct(f.converted / f.sent)} of sent` : "no sends yet"} />
           </Card>
-          <Card>
-            <Stat label="Revenue / ROAS" value={inr(c.revenue)} sub={`${roasX(c.roas)} return`} />
+          <Card delay={180}>
+            <Stat label="Revenue / ROAS" value={inr(c.revenue)} sub={c.roas ? `${roasX(c.roas)} return` : "awaiting results"} />
           </Card>
         </div>
 
@@ -69,14 +90,14 @@ export default function CampaignDetailPage() {
               <Row label="Predicted ROAS" value={roasX(c.predicted.roas)} />
               <Row label="Actual ROAS" value={roasX(c.roas)} />
               <Row label="Predicted convert" value={pct(c.predicted.convertRate)} />
-              <Row label="Actual convert" value={pct(f.converted / f.sent)} />
+              <Row label="Actual convert" value={rate(f.converted)} />
             </div>
             <div className="mb-2 mt-4 text-sm font-medium text-slate-200">Variants</div>
             <div className="space-y-2">
               {c.variants.map((v) => (
                 <div
                   key={v.variant}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm"
                 >
                   <span>Variant {v.variant}</span>
                   <span className="text-slate-400">
@@ -90,11 +111,16 @@ export default function CampaignDetailPage() {
 
         <Card className="p-4">
           <div className="mb-3 text-sm font-medium text-slate-200">Recent message events</div>
+          {c.timeline.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/[0.08] px-4 py-8 text-center text-sm text-slate-500">
+              No message events yet — they appear here as the campaign sends.
+            </div>
+          ) : null}
           <div className="space-y-1">
             {c.timeline.map((t, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm hover:bg-slate-800/30"
+                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-white/[0.03]"
               >
                 <span className="min-w-0 truncate text-slate-200">{t.customer}</span>
                 <span className="flex shrink-0 items-center gap-2 sm:gap-3">
