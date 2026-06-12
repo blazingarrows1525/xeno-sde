@@ -281,21 +281,40 @@ BLUEPRINT.md            full design + scalability plan (10k → 1M)
 
 ## 🖼 Screens & figures
 
-The live app is the best demo — **[xeno-sde-six.vercel.app](https://xeno-sde-six.vercel.app)** (use the demo workspace).
+> Captured from the running app. The live demo is one click away —
+> **[xeno-sde-six.vercel.app](https://xeno-sde-six.vercel.app)** (one-tap demo workspace, no account needed).
 
-| Screen | What it shows |
-|--------|---------------|
-| **Login** | Glass auth card with a live mini reasoning-trace preview; Google / GitHub / one-tap demo |
-| **Agent Console** | Goal input + starter prompts on the left; the streamed glass-box reasoning trace on the right |
-| **Campaigns** | All proposed/launched plays with status, audience, conversions, revenue, ROAS |
-| **Campaign detail** | Delivery funnel, predicted-vs-actual panel, A/B variants, recent-events timeline |
-| **Insights** | Channel-ROI bars, the predicted-vs-actual **calibration** line, and a “the agent is learning” accuracy ring |
+#### 🧠 The glass-box agent console
 
-> [!NOTE]
-> **Recommended figures to add** (drop PNGs in `docs/img/` and reference them here):
-> - `docs/img/agent-console.png` — *alt: “Agent Console streaming a live reasoning trace.”*
-> - `docs/img/calibration.png` — *alt: “Predicted vs. actual ROAS converging over campaigns.”*
-> - `docs/img/campaign-detail.png` — *alt: “Campaign delivery funnel with A/B variants.”*
+![Agent Console streaming a live reasoning trace while assembling a campaign plan with predicted ROAS, held for human approval.](docs/img/agent-console.png)
+
+> State a goal → the agent’s tool calls and the **exact data it pulled** stream in live, and a full
+> campaign plan with predicted ROAS is assembled **for your approval** — nothing sends on its own.
+
+#### 🔐 Sign-in
+
+![Kairos sign-in — a glass auth card with a live mini reasoning-trace preview, Google and GitHub OAuth, and a one-tap demo workspace.](docs/img/login.png)
+
+> OAuth (Google / GitHub) **plus** an always-on demo workspace, so the deployment is reviewable out of the box.
+
+#### 📊 Campaigns & Insights
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/img/campaigns.png" alt="Campaigns list showing every proposed or launched play with status, audience, conversions, revenue and ROAS." /></td>
+    <td width="50%"><img src="docs/img/insights.png" alt="Insights: channel-ROI bars, a predicted-vs-actual ROAS calibration line, and an accuracy ring showing the agent is learning." /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Campaigns — every play, with live status, audience, conversions, revenue & ROAS.</em></td>
+    <td align="center"><em>Insights — channel ROI and the predicted-vs-actual <strong>calibration</strong> curve.</em></td>
+  </tr>
+</table>
+
+#### 🔎 Campaign detail
+
+![Campaign detail — delivery funnel, predicted-vs-actual ROAS, A/B variants, and the per-message event timeline.](docs/img/campaign-detail.png)
+
+> Delivery funnel, predicted-vs-actual panel, A/B variants, and the per-message event timeline.
 
 ---
 
