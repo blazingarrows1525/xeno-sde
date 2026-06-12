@@ -37,7 +37,7 @@ export function AppShell({
         <button
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-slate-300 transition hover:bg-white/[0.05]"
+          className="btn-tactile grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-slate-300 hover:bg-white/[0.05]"
         >
           <Menu size={18} />
         </button>
@@ -54,7 +54,7 @@ export function AppShell({
       {open ? (
         <div
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="animate-fade fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           aria-hidden
         />
       ) : null}
@@ -85,7 +85,7 @@ export function AppShell({
           <button
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200 lg:hidden"
+            className="btn-tactile grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 lg:hidden"
           >
             <X size={18} />
           </button>
@@ -108,11 +108,13 @@ export function AppShell({
               }`}
             >
               {active ? (
-                <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-gradient-to-b from-indigo-400 to-violet-400" />
+                <span className="nav-indicator absolute left-0 top-1/2 h-5 w-0.5 rounded-r bg-gradient-to-b from-indigo-400 to-violet-400" />
               ) : null}
               <Icon
                 size={18}
-                className={active ? "text-indigo-300" : "text-slate-500 group-hover:text-slate-300"}
+                className={`transition-transform duration-200 group-hover:[transform:translateX(2px)] ${
+                  active ? "text-indigo-300" : "text-slate-500 group-hover:text-slate-300"
+                }`}
               />
               {label}
             </Link>
@@ -134,7 +136,7 @@ export function AppShell({
                 </div>
               </div>
               <form action="/api/auth/logout" method="post">
-                <button className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] px-2 py-1.5 text-[11px] text-slate-400 transition hover:border-white/[0.16] hover:text-slate-200">
+                <button className="btn-tactile mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] px-2 py-1.5 text-[11px] text-slate-400 hover:border-white/[0.16] hover:text-slate-200">
                   <LogOut size={12} /> Sign out
                 </button>
               </form>

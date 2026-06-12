@@ -53,7 +53,7 @@ export function PlanCard({
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button onClick={onApprove} disabled={approved}>
-          <Check size={16} /> {approved ? "Approved & launched" : "Approve & launch"}
+          <Check size={16} className="icon-pop" /> {approved ? "Approved & launched" : "Approve & launch"}
         </Button>
         {approved ? (
           <Badge tone="green">sending through channel service</Badge>

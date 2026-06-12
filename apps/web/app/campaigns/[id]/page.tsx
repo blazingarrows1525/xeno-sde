@@ -100,7 +100,7 @@ export default function CampaignDetailPage() {
                 "Launching…"
               ) : (
                 <>
-                  <Sparkles size={16} /> Approve &amp; launch
+                  <Sparkles size={16} className="icon-pop" /> Approve &amp; launch
                 </>
               )}
             </Button>

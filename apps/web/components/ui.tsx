@@ -28,7 +28,7 @@ export function Button({
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.985] disabled:pointer-events-none disabled:opacity-55 ${
+      className={`btn-tactile inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:pointer-events-none disabled:opacity-55 ${
         BUTTON_VARIANTS[variant]
       } ${fullWidth ? "w-full" : ""} ${className}`}
       {...rest}

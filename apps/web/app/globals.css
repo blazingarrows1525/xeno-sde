@@ -140,6 +140,26 @@ body::after {
   0%, 100% { transform: scale(1) translate3d(0, 0, 0); }
   50% { transform: scale(1.06) translate3d(1.5%, -1.2%, 0); }
 }
+@keyframes navIndicator {
+  from { transform: translateY(-50%) scaleY(0); opacity: 0; }
+  to { transform: translateY(-50%) scaleY(1); opacity: 1; }
+}
+@keyframes traceIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+    box-shadow:
+      inset 0 0 0 1px rgb(129 140 248 / 0.35),
+      0 0 18px -6px rgb(99 102 241 / 0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    box-shadow:
+      inset 0 0 0 1px transparent,
+      0 0 0 0 transparent;
+  }
+}
 
 /* ── utilities ──────────────────────────────────────────────────────────── */
 .animate-fade-up { animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -154,7 +174,10 @@ body::after {
 }
 
 .card-hover {
-  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.25s ease,
+    box-shadow 0.3s ease;
 }
 .card-hover:hover {
   transform: translateY(-3px);
@@ -162,6 +185,49 @@ body::after {
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
     0 28px 60px -28px rgb(99 102 241 / 0.5);
+}
+
+/* ── tactile controls ───────────────────────────────────────────────────── */
+/* Spring-based lift + press physics for buttons and button-like links.
+   Drives the literal `transform` property (not Tailwind's translate/scale
+   longhands) so the transition interpolates reliably. */
+.btn-tactile {
+  will-change: transform;
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    filter 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.btn-tactile:hover { transform: translateY(-1.5px); }
+.btn-tactile:active {
+  transform: translateY(0.5px) scale(0.98);
+  transition-duration: 0.08s;
+}
+/* Touch screens have no hover — don't leave buttons stuck "lifted" after a tap. */
+@media (hover: none) {
+  .btn-tactile:hover { transform: none; }
+}
+
+/* Icon micro-motion inside tactile controls */
+.btn-tactile .icon-nudge,
+.btn-tactile .icon-pop {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-tactile:hover .icon-nudge { transform: translateX(2.5px); }
+.btn-tactile:hover .icon-pop { transform: rotate(-10deg) scale(1.12); }
+
+/* Sidebar active-route indicator grows in with a spring */
+.nav-indicator {
+  transform: translateY(-50%);
+  animation: navIndicator 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Streaming reasoning steps land with a soft indigo glow that decays */
+.trace-item {
+  animation: traceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .live-dot {

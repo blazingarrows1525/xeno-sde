@@ -200,7 +200,7 @@ export default function ConsolePage() {
                 <button
                   key={s}
                   onClick={() => setGoal(s)}
-                  className="rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 transition hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200 active:scale-95"
+                  className="btn-tactile rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
                 >
                   {s.length > 42 ? s.slice(0, 42) + "…" : s}
                 </button>
@@ -211,7 +211,7 @@ export default function ConsolePage() {
                 "Reasoning…"
               ) : (
                 <>
-                  <Sparkles size={16} /> Run agent
+                  <Sparkles size={16} className="icon-pop" /> Run agent
                 </>
               )}
             </Button>
@@ -237,9 +237,9 @@ export default function ConsolePage() {
               {launched ? (
                 <a
                   href="/campaigns"
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/25"
+                  className="btn-tactile mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/25"
                 >
-                  <Check size={16} /> Launched — view in Campaigns
+                  <Check size={16} className="icon-pop" /> Launched — view in Campaigns
                 </a>
               ) : (
                 <Button
