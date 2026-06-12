@@ -36,6 +36,8 @@ export default function CampaignDetailPage() {
     queryKey: ["campaign", id],
     queryFn: () => getCampaign(id),
     enabled: Boolean(id),
+    // While the channel is still delivering, poll so the funnel fills in live.
+    refetchInterval: (query) => (query.state.data?.status === "sending" ? 2500 : false),
   });
 
   const approve = useMutation({

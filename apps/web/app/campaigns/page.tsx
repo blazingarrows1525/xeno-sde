@@ -15,7 +15,13 @@ const STATUS_TONE = {
 } as const;
 
 export default function CampaignsPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["campaigns"], queryFn: listCampaigns });
+  const { data, isLoading } = useQuery({
+    queryKey: ["campaigns"],
+    queryFn: listCampaigns,
+    // Keep the table live while any campaign is mid-send (funnel + ROAS settle in real time).
+    refetchInterval: (query) =>
+      query.state.data?.some((c) => c.status === "sending") ? 3000 : false,
+  });
   return (
     <div>
       <PageHeader title="Campaigns" subtitle="Every play the agent has proposed or run." />

@@ -2,8 +2,12 @@
 # The Next.js web app deploys separately on Vercel (root directory: apps/web).
 # See DEPLOY.md for the full walkthrough.
 #
-# After "New > Blueprint" picks this up, set the three CRM secrets marked `sync: false`
-# (DATABASE_URL, ANTHROPIC_API_KEY, CORS_ORIGINS). Everything else is generated/defaulted.
+# After "New > Blueprint" picks this up, set the CRM secrets marked `sync: false`:
+#   DATABASE_URL, ANTHROPIC_API_KEY, CORS_ORIGINS,
+#   CHANNEL_SERVICE_URL  → the kairos-channel URL, e.g. https://kairos-channel.onrender.com
+#   CRM_PUBLIC_URL       → this service's own URL,  e.g. https://kairos-crm.onrender.com
+# The HMAC secret is generated on the CRM and copied to the channel automatically (fromService),
+# so the signed receipt callbacks verify on both ends.
 services:
   - type: web
     name: kairos-crm
@@ -21,7 +25,11 @@ services:
         sync: false
       - key: CORS_ORIGINS          # your Vercel URL, e.g. https://kairos-web.vercel.app
         sync: false
-      - key: RECEIPT_HMAC_SECRET
+      - key: CHANNEL_SERVICE_URL   # where the CRM POSTs sends — the kairos-channel public URL
+        sync: false
+      - key: CRM_PUBLIC_URL        # where the channel calls back — this service's public URL
+        sync: false
+      - key: RECEIPT_HMAC_SECRET   # signs/verifies receipt callbacks (shared with the channel)
         generateValue: true
 
   - type: web
@@ -34,5 +42,9 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
-      - key: HMAC_SECRET           # match the CRM's RECEIPT_HMAC_SECRET when wiring the send loop
-        generateValue: true
+      # Copied from the CRM so both ends share one secret — the receipt HMAC matches by design.
+      - key: HMAC_SECRET
+        fromService:
+          type: web
+          name: kairos-crm
+          envVarKey: RECEIPT_HMAC_SECRET

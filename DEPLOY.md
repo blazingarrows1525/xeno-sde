@@ -71,8 +71,23 @@ docker build -t kairos-channel apps/channel && \
   docker run -p 8001:8001 kairos-channel
 ```
 
+## The two-service send loop
+
+Approving a campaign dispatches it to the **separate Channel Service**, which simulates each
+delivery lifecycle and calls back into the CRM's `/v1/receipts` with HMAC-signed events. To run
+this live in production, set three things on **kairos-crm**:
+
+- `CHANNEL_SERVICE_URL` → the channel's public URL (e.g. `https://kairos-channel.onrender.com`)
+- `CRM_PUBLIC_URL` → the CRM's own public URL (the channel calls this back)
+- `RECEIPT_HMAC_SECRET` → generated on the CRM; `render.yaml` copies it into the channel's
+  `HMAC_SECRET` automatically (`fromService`), so the signatures verify on both ends.
+
+If `CHANNEL_SERVICE_URL` is unset or the channel is asleep (free-tier cold start), approval
+**falls back** to a deterministic in-process simulation that writes the same events/stats tables —
+so a launch never stalls. Locally, run the channel on `:8001` and the CRM with
+`CHANNEL_SERVICE_URL=http://localhost:8001 CRM_PUBLIC_URL=http://localhost:8000` (both HMAC secrets
+default to the same dev value, so the loop just works).
+
 ## Notes
 
 - The deployed CRM reads config from environment variables (no `.env` file needed in the container).
-- Wiring the live send→receipt loop later: point the CRM's `CHANNEL_SERVICE_URL` at the channel
-  service, the channel's `CRM_RECEIPTS_URL` back at the CRM, and set both HMAC secrets equal.

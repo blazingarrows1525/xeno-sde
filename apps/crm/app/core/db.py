@@ -20,6 +20,10 @@ def get_engine():
             settings.sqlalchemy_url,
             connect_args=settings.engine_connect_args,
             pool_pre_ping=True,
+            pool_size=settings.db_pool_size,
+            max_overflow=settings.db_max_overflow,
+            pool_timeout=settings.db_pool_timeout,
+            pool_recycle=300,
         )
     return _engine
 

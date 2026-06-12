@@ -17,22 +17,16 @@ returned untouched, so re-approval or a backfill pass can never double-count.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
 from random import Random
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.events.economics import CHANNEL_AOV, CHANNEL_COST, money as _money
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
 from app.models.customer import Customer
 
-CHANNEL_COST = {"whatsapp": 0.85, "sms": 0.30, "email": 0.10}  # INR per message
-CHANNEL_AOV = {"whatsapp": 2800, "sms": 1900, "email": 3000}   # INR avg order value
 SAMPLE_MESSAGES = 32  # messages materialized for the timeline / variant breakdown
-
-
-def _money(x: float) -> Decimal:
-    return Decimal(str(round(x, 2)))
 
 
 async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:

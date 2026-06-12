@@ -66,7 +66,8 @@ async def run_lifecycle(
     max_retries: int,
 ) -> None:
     previous = 0.0
-    for event in plan:
+    last_index = len(plan) - 1
+    for index, event in enumerate(plan):
         await asyncio.sleep(max(0.0, event.delay - previous) * time_scale)
         previous = event.delay
         record.state = event.event_type
@@ -78,6 +79,9 @@ async def run_lifecycle(
                     "event_type": event.event_type,
                     "sequence": event.sequence,
                     "occurred_at": datetime.now(timezone.utc).isoformat(),
+                    # The last planned event ends this message's lifecycle — the CRM uses this
+                    # to know when every recipient has settled and the campaign is complete.
+                    "terminal": index == last_index,
                 }
             ]
         }

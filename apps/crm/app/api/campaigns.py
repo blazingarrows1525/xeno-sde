@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.db import get_session
+from app.events.dispatch import fan_out, send_to_channel
 from app.events.simulate import simulate_send
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
 
@@ -224,11 +226,15 @@ async def approve_campaign(
     req: ApproveRequest,
     session: AsyncSession = Depends(get_session),
 ) -> CampaignOut:
-    """The human approval gate: record the approval, then launch.
+    """The human approval gate: record the approval, then launch through the channel.
 
-    Approving *is* launching here — once a human signs off we fan the campaign out
-    to its audience, play the delivery funnel forward and roll it up into stats, so
-    the campaign lands as a real, completed run rather than sitting at 'sending'.
+    Approving *is* launching. We fan the campaign out to real per-recipient messages and
+    dispatch them to the separate Channel Service; it simulates each lifecycle and calls
+    back into ``/v1/receipts``, which rolls events up into stats — so the funnel fills in
+    live and the campaign settles to 'completed' on its own.
+
+    If the Channel Service is unreachable (e.g. a cold free-tier instance), we fall back to
+    the deterministic in-process simulation so the campaign never stalls at 'sending'.
     """
     c = await session.get(Campaign, uuid.UUID(campaign_id))
     if c is None:
@@ -236,11 +242,40 @@ async def approve_campaign(
     if c.approved_by:
         raise HTTPException(409, "Already approved")
 
+    now = datetime.now(timezone.utc)
     c.approved_by = req.approved_by
-    c.approved_at = datetime.now(timezone.utc)
-    c.status = "approved"
-    await simulate_send(session, c)  # fans out, fills the funnel, marks completed
+    c.approved_at = now
+    c.launched_at = now
+    c.status = "sending"
+
+    # Zero the rollup so the live funnel climbs purely from real channel callbacks.
+    stats = await session.get(CampaignStats, c.id)
+    if stats is None:
+        stats = CampaignStats(campaign_id=c.id)
+        session.add(stats)
+    for field in ("sent", "delivered", "failed", "opened", "read", "clicked", "converted"):
+        setattr(stats, field, 0)
+    stats.revenue = Decimal("0")
+    stats.send_cost = Decimal("0")
+    stats.updated_at = now
+
+    # Phase 1: persist the queued messages and commit, so they're visible before the
+    # channel's first callbacks land (otherwise early events hit uncommitted rows).
+    messages = await fan_out(session, c)
     await session.commit()
+
+    # Phase 2: hand the batch to the separate Channel Service. It simulates each lifecycle
+    # and calls /v1/receipts back, which rolls the funnel up and settles the campaign.
+    ok = await send_to_channel(messages)
+    if not ok:
+        # Channel cold/unreachable → deterministic in-process fallback (same tables/shapes),
+        # so the campaign never stalls at 'sending'.
+        for m in messages:
+            await session.delete(m)
+        await session.flush()
+        await simulate_send(session, c)
+        await session.commit()
+    await session.refresh(c)
 
     return CampaignOut(
         id=str(c.id),

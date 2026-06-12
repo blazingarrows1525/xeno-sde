@@ -74,12 +74,25 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/kairos"
     redis_url: str = "redis://localhost:6379/0"
 
+    # Connection pool — sized for the burst of channel callbacks a launch fans in. The
+    # receipt handler is short-lived, so connections recycle fast; the pooler endpoint
+    # (Neon/PgBouncer) absorbs the rest. Tune via env if your Postgres caps connections.
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    db_pool_timeout: float = 20.0
+
     anthropic_api_key: str = ""
     planner_model: str = "claude-opus-4-8"
     bulk_model: str = "claude-haiku-4-5-20251001"
 
+    # The two-service send loop. The CRM POSTs sends to channel_service_url/v1/send and tells
+    # the channel to call back to crm_public_url/v1/receipts (signed with receipt_hmac_secret,
+    # which must match the channel's HMAC_SECRET).
     channel_service_url: str = "http://localhost:8001"
+    crm_public_url: str = "http://localhost:8000"
     receipt_hmac_secret: str = "dev-secret-change-me"
+    channel_send_timeout: float = 20.0  # generous, to absorb a cold free-tier channel
+    send_cap: int = 50  # max real recipients per launch at demo scale (see dispatch.py)
 
     # Comma-separated allowed CORS origins (the deployed web app). Any *.vercel.app
     # preview is additionally allowed via regex in main.py.
