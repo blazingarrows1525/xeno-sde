@@ -242,6 +242,16 @@ export async function launchCampaign(input: {
   return { id: created.id, name, channel: input.channel, status: "sending" };
 }
 
+// Approve (= launch) an existing proposed campaign — used by the detail page's
+// approval gate for campaigns still awaiting sign-off.
+export async function approveCampaign(id: string): Promise<void> {
+  if (!BASE) {
+    await delay(400);
+    return;
+  }
+  await postJSON(`/v1/campaigns/${id}/approve`, { approved_by: "operator" });
+}
+
 // A single Server-Sent Event from the live /v1/agent/run stream.
 export interface AgentStreamEvent {
   kind?: "tool_call" | "tool_result" | "final" | "awaiting_approval" | "error";

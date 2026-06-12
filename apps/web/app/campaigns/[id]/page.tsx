@@ -1,10 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { getCampaign } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck, Sparkles } from "lucide-react";
+import { approveCampaign, getCampaign } from "@/lib/api";
 import type { EventType } from "@/lib/types";
-import { Badge, Card, PageHeader, Skeleton, Stat } from "@/components/ui";
+import { Badge, Button, Card, PageHeader, Skeleton, Stat } from "@/components/ui";
 import { FunnelChart } from "@/components/charts";
 import { compact, inr, pct, roasX } from "@/lib/format";
 
@@ -30,10 +31,22 @@ function Row({ label, value }: { label: string; value: string }) {
 export default function CampaignDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const queryClient = useQueryClient();
   const { data: c, isLoading } = useQuery({
     queryKey: ["campaign", id],
     queryFn: () => getCampaign(id),
     enabled: Boolean(id),
+  });
+
+  const approve = useMutation({
+    mutationFn: () => approveCampaign(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaign", id] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["summary"] });
+      queryClient.invalidateQueries({ queryKey: ["roi"] });
+      queryClient.invalidateQueries({ queryKey: ["cal"] });
+    },
   });
 
   if (isLoading || !c)
@@ -59,11 +72,40 @@ export default function CampaignDetailPage() {
   const f = c.funnel;
   // Campaigns that haven't sent yet have an all-zero funnel — never show NaN%.
   const rate = (n: number) => (f.sent ? pct(n / f.sent) : "—");
+  const awaitingApproval = c.status === "pending_approval" || c.status === "draft";
 
   return (
     <div>
       <PageHeader title={c.name} subtitle={c.goal} actions={<Badge tone="indigo">{c.channel}</Badge>} />
       <div className="space-y-5 p-4 sm:p-6 lg:space-y-6 lg:p-8">
+        {awaitingApproval ? (
+          <div className="animate-scale-in flex flex-col gap-3 rounded-2xl border border-amber-500/25 bg-gradient-to-r from-amber-500/[0.08] to-transparent p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-500/15 text-amber-300">
+                <ShieldCheck size={18} />
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-slate-100">Awaiting your approval</div>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  The agent proposed this campaign and is holding it. Nothing sends until you sign off.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => approve.mutate()}
+              loading={approve.isPending}
+              className="shrink-0"
+            >
+              {approve.isPending ? (
+                "Launching…"
+              ) : (
+                <>
+                  <Sparkles size={16} /> Approve &amp; launch
+                </>
+              )}
+            </Button>
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card delay={0}>
             <Stat label="Delivered" value={rate(f.delivered)} sub={`${compact(f.delivered)} of ${compact(f.sent)}`} />

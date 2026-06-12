@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.db import get_session
+from app.events.simulate import simulate_send
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
 
 router = APIRouter(tags=["campaigns"])
@@ -223,7 +224,12 @@ async def approve_campaign(
     req: ApproveRequest,
     session: AsyncSession = Depends(get_session),
 ) -> CampaignOut:
-    """The human approval gate — sets approved_by and transitions to pending_send."""
+    """The human approval gate: record the approval, then launch.
+
+    Approving *is* launching here — once a human signs off we fan the campaign out
+    to its audience, play the delivery funnel forward and roll it up into stats, so
+    the campaign lands as a real, completed run rather than sitting at 'sending'.
+    """
     c = await session.get(Campaign, uuid.UUID(campaign_id))
     if c is None:
         raise HTTPException(404, "Campaign not found")
@@ -233,6 +239,7 @@ async def approve_campaign(
     c.approved_by = req.approved_by
     c.approved_at = datetime.now(timezone.utc)
     c.status = "approved"
+    await simulate_send(session, c)  # fans out, fills the funnel, marks completed
     await session.commit()
 
     return CampaignOut(
