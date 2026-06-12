@@ -145,7 +145,7 @@ export function AppShell({
               </form>
             </div>
           ) : null}
-          <div className="px-2 text-[11px] text-slate-600">Xeno take-home · 2026</div>
+          <div className="px-2 text-[11px] text-slate-600">© 2026 Kairos</div>
         </div>
       </aside>
 

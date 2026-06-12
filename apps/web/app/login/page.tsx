@@ -153,7 +153,7 @@ export default async function LoginPage({
               </ul>
             </div>
 
-            <div className="text-xs text-slate-600">Xeno Engineering Take-Home · 2026</div>
+            <div className="text-xs text-slate-600">© 2026 Kairos</div>
           </div>
 
           {/* sign-in panel */}
