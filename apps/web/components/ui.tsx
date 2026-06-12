@@ -39,6 +39,26 @@ export function Button({
   );
 }
 
+/** Wraps a control with a hover/focus tooltip that explains what it does. */
+export function Tip({
+  tip,
+  children,
+  className = "",
+}: {
+  tip: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={`tip-wrap inline-flex ${className}`}>
+      {children}
+      <span role="tooltip" className="tip-bubble">
+        {tip}
+      </span>
+    </span>
+  );
+}
+
 export function Skeleton({ className = "" }: { className?: string }) {
   return <div aria-hidden className={`skeleton rounded-lg ${className}`} />;
 }

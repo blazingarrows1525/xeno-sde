@@ -230,6 +230,56 @@ body::after {
   animation: traceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── tooltips ───────────────────────────────────────────────────────────── */
+/* Glass gist bubble above the control. Shows after a short intent delay on
+   hover (and on keyboard focus via :focus-within); hides instantly. */
+.tip-wrap {
+  position: relative;
+}
+.tip-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 50;
+  width: max-content;
+  max-width: 17rem;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgba(10, 12, 24, 0.94);
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  color: #cbd5e1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px) scale(0.97);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.15s ease,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 0s;
+}
+.tip-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgb(255 255 255 / 0.1);
+}
+.tip-wrap:hover .tip-bubble,
+.tip-wrap:focus-within .tip-bubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+  transition-delay: 0.35s;
+}
+
 .live-dot {
   display: inline-block;
   width: 7px;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Megaphone, Sparkles, LogOut, Menu, X } from "lucide-react";
+import { Tip } from "@/components/ui";
 import type { SessionUser } from "@/lib/auth";
 
 const NAV = [
@@ -136,9 +137,11 @@ export function AppShell({
                 </div>
               </div>
               <form action="/api/auth/logout" method="post">
-                <button className="btn-tactile mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] px-2 py-1.5 text-[11px] text-slate-400 hover:border-white/[0.16] hover:text-slate-200">
-                  <LogOut size={12} /> Sign out
-                </button>
+                <Tip className="w-full" tip="Ends this session and returns to the sign-in screen.">
+                  <button className="btn-tactile mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] px-2 py-1.5 text-[11px] text-slate-400 hover:border-white/[0.16] hover:text-slate-200">
+                    <LogOut size={12} /> Sign out
+                  </button>
+                </Tip>
               </form>
             </div>
           ) : null}

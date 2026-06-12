@@ -11,15 +11,26 @@ import {
   type AgentStreamEvent,
 } from "@/lib/api";
 import type { AgentPlan, AgentStep } from "@/lib/types";
-import { Badge, Button, Card, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, PageHeader, Tip } from "@/components/ui";
 import { ReasoningTrace } from "@/components/reasoning-trace";
 import { PlanCard } from "@/components/plan-card";
 import { AgentPlanText } from "@/components/agent-plan-text";
 
-const STARTERS = [
-  "Bring back customers who haven't ordered in 60 days and maximize ROI",
-  "Reward my top 10% spenders with an exclusive offer",
-  "Convert one-time buyers into repeat customers",
+// Each starter carries a gist of the play the agent will propose for it —
+// surfaced as a hover tooltip so you know the answer before you ask.
+const STARTERS: { goal: string; gist: string }[] = [
+  {
+    goal: "Bring back customers who haven't ordered in 60 days and maximize ROI",
+    gist: "Builds a win-back segment of 60-day-dormant shoppers, picks the highest-ROI channel, and drafts two message variants with a predicted ROAS.",
+  },
+  {
+    goal: "Reward my top 10% spenders with an exclusive offer",
+    gist: "Finds your highest-LTV decile and proposes a VIP exclusive with A/B variants and a revenue forecast.",
+  },
+  {
+    goal: "Convert one-time buyers into repeat customers",
+    gist: "Segments single-order customers and plans a second-purchase nudge with predicted conversion uplift.",
+  },
 ];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -79,7 +90,7 @@ function liveStepToAgentStep(ev: AgentStreamEvent): AgentStep | null {
 }
 
 export default function ConsolePage() {
-  const [goal, setGoal] = useState(STARTERS[0]);
+  const [goal, setGoal] = useState(STARTERS[0].goal);
   const [running, setRunning] = useState(false);
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [plan, setPlan] = useState<AgentPlan | null>(null);
@@ -197,24 +208,38 @@ export default function ConsolePage() {
             />
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setGoal(s)}
-                  className="btn-tactile rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
+                <Tip
+                  key={s.goal}
+                  tip={
+                    <>
+                      <span className="block font-medium text-slate-200">{s.goal}</span>
+                      <span className="mt-1 block text-slate-400">{s.gist}</span>
+                    </>
+                  }
                 >
-                  {s.length > 42 ? s.slice(0, 42) + "…" : s}
-                </button>
+                  <button
+                    onClick={() => setGoal(s.goal)}
+                    className="btn-tactile rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-slate-300 hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:text-indigo-200"
+                  >
+                    {s.goal.length > 42 ? s.goal.slice(0, 42) + "…" : s.goal}
+                  </button>
+                </Tip>
               ))}
             </div>
-            <Button onClick={run} loading={running} className="mt-4">
-              {running ? (
-                "Reasoning…"
-              ) : (
-                <>
-                  <Sparkles size={16} className="icon-pop" /> Run agent
-                </>
-              )}
-            </Button>
+            <Tip
+              className="mt-4"
+              tip="Streams the agent's reasoning live — segment queries, audience sizing, and a proposed campaign with predicted ROI. Nothing sends without your approval."
+            >
+              <Button onClick={run} loading={running}>
+                {running ? (
+                  "Reasoning…"
+                ) : (
+                  <>
+                    <Sparkles size={16} className="icon-pop" /> Run agent
+                  </>
+                )}
+              </Button>
+            </Tip>
           </Card>
 
           {plan ? <PlanCard plan={plan} approved={approved} onApprove={approve} /> : null}
@@ -235,22 +260,26 @@ export default function ConsolePage() {
               </div>
               <AgentPlanText text={planText} />
               {launched ? (
-                <a
-                  href="/campaigns"
-                  className="btn-tactile mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/25"
+                <Tip
+                  className="mt-4 w-full"
+                  tip="Opens Campaigns to see this run live — delivery funnel, conversions, and ROAS."
                 >
-                  <Check size={16} className="icon-pop" /> Launched — view in Campaigns
-                </a>
+                  <a
+                    href="/campaigns"
+                    className="btn-tactile flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/25"
+                  >
+                    <Check size={16} className="icon-pop" /> Launched — view in Campaigns
+                  </a>
+                </Tip>
               ) : (
-                <Button
-                  onClick={approve}
-                  disabled={running}
-                  loading={launching}
-                  fullWidth
-                  className="mt-4"
+                <Tip
+                  className="mt-4 w-full"
+                  tip="Passes the human-approval gate: creates this campaign, sends it to the matched audience, and completes with a real delivery funnel and ROAS."
                 >
-                  {launching ? "Launching…" : "Approve & launch"}
-                </Button>
+                  <Button onClick={approve} disabled={running} loading={launching} fullWidth>
+                    {launching ? "Launching…" : "Approve & launch"}
+                  </Button>
+                </Tip>
               )}
             </Card>
           ) : null}

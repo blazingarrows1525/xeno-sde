@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Sparkles } from "lucide-react";
 import { approveCampaign, getCampaign } from "@/lib/api";
 import type { EventType } from "@/lib/types";
-import { Badge, Button, Card, PageHeader, Skeleton, Stat } from "@/components/ui";
+import { Badge, Button, Card, PageHeader, Skeleton, Stat, Tip } from "@/components/ui";
 import { FunnelChart } from "@/components/charts";
 import { compact, inr, pct, roasX } from "@/lib/format";
 
@@ -91,19 +91,20 @@ export default function CampaignDetailPage() {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => approve.mutate()}
-              loading={approve.isPending}
+            <Tip
               className="shrink-0"
+              tip="Signs off and launches: the campaign sends to its audience and lands here as a completed run with a full funnel and ROAS."
             >
-              {approve.isPending ? (
-                "Launching…"
-              ) : (
-                <>
-                  <Sparkles size={16} className="icon-pop" /> Approve &amp; launch
-                </>
-              )}
-            </Button>
+              <Button onClick={() => approve.mutate()} loading={approve.isPending}>
+                {approve.isPending ? (
+                  "Launching…"
+                ) : (
+                  <>
+                    <Sparkles size={16} className="icon-pop" /> Approve &amp; launch
+                  </>
+                )}
+              </Button>
+            </Tip>
           </div>
         ) : null}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

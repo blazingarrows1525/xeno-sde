@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import type { AgentPlan } from "@/lib/types";
 import { compact, inr, pct, roasX } from "@/lib/format";
-import { Badge, Button } from "./ui";
+import { Badge, Button, Tip } from "./ui";
 
 export function PlanCard({
   plan,
@@ -52,9 +52,12 @@ export function PlanCard({
       <p className="mt-3 text-xs text-slate-400">{plan.rationale}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button onClick={onApprove} disabled={approved}>
-          <Check size={16} className="icon-pop" /> {approved ? "Approved & launched" : "Approve & launch"}
-        </Button>
+        <Tip tip="Passes the human-approval gate: creates this campaign, sends it to the matched audience, and completes with a real delivery funnel and ROAS.">
+          <Button onClick={onApprove} disabled={approved}>
+            <Check size={16} className="icon-pop" />{" "}
+            {approved ? "Approved & launched" : "Approve & launch"}
+          </Button>
+        </Tip>
         {approved ? (
           <Badge tone="green">sending through channel service</Badge>
         ) : (

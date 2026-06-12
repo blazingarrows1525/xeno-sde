@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Sparkles, Wrench } from "lucide-react";
+import { Tip } from "@/components/ui";
 import { providers } from "@/lib/auth";
 
 const ERRORS: Record<string, string> = {
@@ -176,18 +177,28 @@ export default async function LoginPage({
             ) : null}
 
             <div className="animate-fade-up space-y-2.5" style={{ animationDelay: "140ms" }}>
-              <Link
-                href="/api/auth/start/google"
-                className="btn-tactile flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 hover:border-white/[0.18] hover:bg-white/[0.06]"
+              <Tip
+                className="w-full"
+                tip="OAuth sign-in with your Google account — your workspace, no password stored."
               >
-                <GoogleIcon /> Continue with Google
-              </Link>
-              <Link
-                href="/api/auth/start/github"
-                className="btn-tactile flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 hover:border-white/[0.18] hover:bg-white/[0.06]"
+                <Link
+                  href="/api/auth/start/google"
+                  className="btn-tactile flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 hover:border-white/[0.18] hover:bg-white/[0.06]"
+                >
+                  <GoogleIcon /> Continue with Google
+                </Link>
+              </Tip>
+              <Tip
+                className="w-full"
+                tip="OAuth sign-in with your GitHub account — your workspace, no password stored."
               >
-                <GithubIcon /> Continue with GitHub
-              </Link>
+                <Link
+                  href="/api/auth/start/github"
+                  className="btn-tactile flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-100 hover:border-white/[0.18] hover:bg-white/[0.06]"
+                >
+                  <GithubIcon /> Continue with GitHub
+                </Link>
+              </Tip>
             </div>
 
             <div
@@ -201,13 +212,18 @@ export default async function LoginPage({
 
             {/* Always-available demo entry — keeps the live deployment reviewable. */}
             <form action="/api/auth/demo" method="post" className="animate-fade-up" style={{ animationDelay: "260ms" }}>
-              <button
-                type="submit"
-                className="btn-tactile sheen flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110"
+              <Tip
+                className="w-full"
+                tip="No account needed — one click opens the full workspace: agent console, campaigns, and live insights."
               >
-                Enter demo workspace
-                <ArrowRight size={16} className="icon-nudge" />
-              </button>
+                <button
+                  type="submit"
+                  className="btn-tactile sheen flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110"
+                >
+                  Enter demo workspace
+                  <ArrowRight size={16} className="icon-nudge" />
+                </button>
+              </Tip>
             </form>
 
             <p
