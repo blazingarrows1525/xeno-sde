@@ -17,8 +17,9 @@ from decimal import Decimal
 from sqlalchemy import delete, select
 
 from app.core.db import get_sessionmaker
+from app.events.economics import value_spread
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
-from app.models.customer import Customer
+from app.models.customer import Customer, Order
 
 
 def _money(x: float) -> Decimal:
@@ -45,6 +46,8 @@ async def seed(wipe: bool, seed_value: int) -> None:
 
     async with sm() as session:
         if wipe:
+            # Attributed orders reference campaigns via SET NULL, so clear them explicitly first.
+            await session.execute(delete(Order).where(Order.source == "campaign"))
             await session.execute(delete(Campaign))  # cascades to stats/messages/events
             await session.commit()
             print("- wiped existing campaigns")
@@ -71,8 +74,11 @@ async def seed(wipe: bool, seed_value: int) -> None:
             clicked = int(delivered * 0.21)
             converted = int(sent * conv)
             failed = sent - delivered
-            revenue = converted * aov
-            send_cost = (revenue / actual_roas) if actual_roas > 0 else sent * CHANNEL_COST[channel]
+            # Varied per-order values (not a flat AOV); revenue is their sum so it equals
+            # SUM(attributed orders) for this campaign.
+            order_values = [value_spread(aov, random) for _ in range(converted)]
+            revenue = sum(order_values, Decimal("0"))
+            send_cost = (revenue / Decimal(str(actual_roas))) if actual_roas > 0 else Decimal(str(sent * CHANNEL_COST[channel]))
 
             predicted = {
                 "audience": audience,
@@ -122,7 +128,7 @@ async def seed(wipe: bool, seed_value: int) -> None:
                         rendered_body=f"Hi {cust.first_name or 'there'}, a little something for you…",
                         current_state=state, last_sequence=1,
                         idempotency_key=f"seed-{campaign.id}-{i}",
-                        attributed_revenue=_money(aov if state == "converted" else 0),
+                        attributed_revenue=(value_spread(aov, random) if state == "converted" else _money(0)),
                         created_at=created,
                     ))
                 session.add_all(msgs)
@@ -133,6 +139,20 @@ async def seed(wipe: bool, seed_value: int) -> None:
                         occurred_at=created + timedelta(minutes=random.randint(1, 300)),
                     )
                     for m in msgs
+                ])
+
+            # Real attributed orders backing this campaign's revenue — the source of truth for
+            # ROAS, queryable as "which orders came from this campaign".
+            if converted > 0 and customers:
+                session.add_all([
+                    Order(
+                        customer_id=random.choice(customers).id,
+                        external_id=f"seed-conv-{campaign.id}-{k}",
+                        amount=val, currency="INR", status="placed",
+                        ordered_at=created + timedelta(minutes=random.randint(1, 300)),
+                        campaign_id=campaign.id, source="campaign",
+                    )
+                    for k, val in enumerate(order_values)
                 ])
 
             await session.commit()

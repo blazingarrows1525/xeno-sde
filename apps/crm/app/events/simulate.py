@@ -17,14 +17,15 @@ returned untouched, so re-approval or a backfill pass can never double-count.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from random import Random
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.events.economics import CHANNEL_AOV, CHANNEL_COST, money as _money
+from app.events.economics import CHANNEL_AOV, CHANNEL_COST, draw_order_value, money as _money
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
-from app.models.customer import Customer
+from app.models.customer import Customer, Order
 
 SAMPLE_MESSAGES = 32  # messages materialized for the timeline / variant breakdown
 
@@ -54,7 +55,6 @@ async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:
     conv_rate = max(0.03, min(conv_rate, 0.2))
 
     channel = campaign.channel if campaign.channel in CHANNEL_COST else "email"
-    aov = CHANNEL_AOV[channel] * rng.uniform(0.9, 1.1)
 
     sent = max(1, audience)
     delivered = round(sent * 0.93)
@@ -64,12 +64,15 @@ async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:
     converted = min(round(sent * conv_rate), clicked)  # a conversion implies a click
     failed = sent - delivered
 
-    revenue = converted * aov
+    # Each conversion books a real order with a varied value; revenue is their sum, so the
+    # fallback holds the same SUM(orders) == revenue invariant as the live receipt loop.
+    order_values = [draw_order_value(channel, rng) for _ in range(converted)]
+    revenue = sum(order_values, Decimal("0"))
     actual_roas = predicted_roas * rng.uniform(0.80, 0.95)
     send_cost = (
-        revenue / actual_roas
+        revenue / Decimal(str(actual_roas))
         if (converted > 0 and actual_roas > 0)
-        else sent * CHANNEL_COST[channel]
+        else Decimal(str(sent * CHANNEL_COST[channel]))
     )
 
     now = datetime.now(timezone.utc)
@@ -90,7 +93,7 @@ async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:
     pred.setdefault("deliveredRate", 0.94)
     pred.setdefault("openRate", 0.75)
     pred.setdefault("clickRate", 0.22)
-    pred.setdefault("revenue", int(audience * conv_rate * 1.05 * aov))
+    pred.setdefault("revenue", int(audience * conv_rate * 1.05 * CHANNEL_AOV[channel]))
     pred["audience"] = audience
     pred["roas"] = predicted_roas
     campaign.predicted_kpis = pred
@@ -129,7 +132,7 @@ async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:
                 current_state=state,
                 last_sequence=1,
                 idempotency_key=f"sim-{campaign.id}-{i}",
-                attributed_revenue=_money(aov if state == "converted" else 0),
+                attributed_revenue=(draw_order_value(channel, rng) if state == "converted" else _money(0)),
                 created_at=now,
             )
             for i, state in enumerate(pool[:SAMPLE_MESSAGES])
@@ -149,10 +152,29 @@ async def simulate_send(session: AsyncSession, campaign: Campaign) -> dict:
             ]
         )
 
+    # Real, campaign-attributed orders — the same source of truth the live loop writes, so a
+    # fallback-settled campaign is queryable the same way ("which orders came from this campaign").
+    if converted > 0 and customers:
+        session.add_all(
+            [
+                Order(
+                    customer_id=rng.choice(customers).id,
+                    external_id=f"sim-conv-{campaign.id}-{k}",
+                    amount=val,
+                    currency="INR",
+                    status="placed",
+                    ordered_at=now - timedelta(minutes=rng.randint(1, 240)),
+                    campaign_id=campaign.id,
+                    source="campaign",
+                )
+                for k, val in enumerate(order_values)
+            ]
+        )
+
     return {
         "sent": sent,
         "delivered": delivered,
         "converted": converted,
-        "revenue": round(revenue, 2),
+        "revenue": float(round(revenue, 2)),
         "roas": round(actual_roas, 2),
     }

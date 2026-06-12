@@ -23,7 +23,7 @@ sending**, waits for your approval, runs the campaign, and **calibrates** as rea
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-009688?logo=fastapi&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white)
 ![Postgres](https://img.shields.io/badge/PostgreSQL-Neon-336791?logo=postgresql&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-65_passing-22c55e)
+![Tests](https://img.shields.io/badge/tests-77_passing-22c55e)
 
 </div>
 
@@ -84,6 +84,7 @@ that generate copy but can’t be trusted near a production database. Kairos tar
 - 📊 **Calibration analytics** — predicted vs. actual ROAS converging over time, plus channel-ROI breakdowns.
 - 🔐 **Auth that’s always reviewable** — Google / GitHub OAuth *and* a one-tap demo workspace; HMAC-signed cookie sessions that run in both Edge and Node.
 - 🧱 **Idempotent ingestion + ordered event processing** — bulk upserts and an HMAC-verified receipt state machine that survives out-of-order, at-least-once callbacks.
+- 💰 **Real revenue attribution** — a conversion books an actual campaign-attributed order with a realistic order value; campaign revenue and ROAS roll up from real order rows, not a flat constant.
 - 🎨 **Production-grade frontend** — Next.js 16 / React 19 / Tailwind v4 with spring-physics motion, skeleton loading, and full mobile responsiveness.
 
 ---
@@ -118,7 +119,7 @@ flowchart LR
     AG --> DSL
     DSL -- "asyncpg / SSL" --> DB
     CMP --> DB
-    CMP -. "send (future live loop)" .-> SIM
+    CMP -- "POST /v1/send" --> SIM
     SIM -. "HMAC-signed receipts" .-> CMP
 ```
 
@@ -184,7 +185,7 @@ sequenceDiagram
 | **DSL compiler** ([`segments/compiler.py`](apps/crm/app/segments/compiler.py)) | Validated DSL → **parameterized** SQL `WHERE` / count / select-ids | SQLAlchemy `text()` binds |
 | **Campaigns** ([`api/campaigns.py`](apps/crm/app/api/campaigns.py)) | CRUD, approval gate, approve → fan out + dispatch to the Channel Service → live receipt callbacks settle the campaign | FastAPI |
 | **Outbound dispatch** ([`events/dispatch.py`](apps/crm/app/events/dispatch.py)) | Fans a campaign out to per-recipient messages and POSTs the batch to the Channel Service `/v1/send` | httpx |
-| **Receipt rollup** ([`api/receipts.py`](apps/crm/app/api/receipts.py)) | HMAC-verified callbacks → state machine → atomic, lost-update-safe stat increments; `ON CONFLICT` idempotency | SQLAlchemy |
+| **Receipt rollup** ([`api/receipts.py`](apps/crm/app/api/receipts.py)) | HMAC-verified callbacks → state machine → atomic, lost-update-safe stat increments; `ON CONFLICT` idempotency; a conversion books a real campaign-attributed order | SQLAlchemy |
 | **Receipt state machine** ([`events/state_machine.py`](apps/crm/app/events/state_machine.py)) | Pure `decide()` — advances message state only on legal, in-order, non-duplicate events | Pure function |
 | **Send simulation (fallback)** ([`events/simulate.py`](apps/crm/app/events/simulate.py)) | Deterministic in-process funnel used only when the Channel Service is unreachable, so a launch never stalls | Deterministic, seeded |
 | **Channel Service** ([`apps/channel`](apps/channel)) | Standalone delivery simulator: async lifecycle, HMAC-signed callbacks, retries, dead-letters | FastAPI + httpx |
@@ -205,8 +206,8 @@ apps/
 │  │  └─ core/          config (env + Neon URL normalization) · async DB engine
 │  ├─ scripts/          seed generators + backfill (seed, seed_campaigns, process_pending)
 │  ├─ migrations/       Alembic
-│  └─ tests/            49 unit tests
-├─ channel/             FastAPI — Channel Service (delivery lifecycle + HMAC callbacks), 16 tests
+│  └─ tests/            58 unit tests
+├─ channel/             FastAPI — Channel Service (delivery lifecycle + HMAC callbacks), 19 tests
 └─ web/                 Next.js 16 — Agent Console, Campaigns, Insights, OAuth login
    ├─ app/              App-Router routes + /api/auth handlers
    ├─ components/       design system, charts, reasoning trace, app shell
@@ -252,7 +253,7 @@ BLUEPRINT.md            full design + scalability plan (10k → 1M)
 | **Segment DSL → SQL** | Safe, LLM-proposed audiences | Closed allowlist of 9 fields × typed operators; depth ≤ 5, ≤ 50 conditions; values always bound, never concatenated |
 | **Live audience preview** | Know the segment size before committing | `POST /v1/segments/preview` compiles + counts against the live `customers` table |
 | **Human approval gate** | Nothing sends without sign-off | `requires_approval` tools short-circuit to `awaiting_approval`; the gate lives in [`runtime.py`](apps/crm/app/agents/runtime.py), not the prompt |
-| **Approve → dispatch → settle** | Turn a plan into a finished campaign | Approval fans the campaign out to per-recipient messages, dispatches them to the **separate Channel Service**, and the async receipt callbacks roll up the funnel live and flip the campaign to `completed` (deterministic in-process fallback if the channel is unreachable) |
+| **Approve → dispatch → settle** | Turn a plan into a finished campaign | Approval fans the campaign out to per-recipient messages, dispatches them to the **separate Channel Service**, and the async receipt callbacks roll up the funnel live, **book a real attributed order on each conversion**, and flip the campaign to `completed` (deterministic in-process fallback if the channel is unreachable) |
 | **Campaign detail** | Inspect a run end-to-end | Delivery funnel, A/B variants, and a recent-events timeline |
 | **Insights & calibration** | Prove the agent learns | Channel-ROI bars + predicted-vs-actual ROAS line; aggregate summary cards |
 | **Model failover** | Resilience under load | `FallbackLLM` tries a fast primary model, transparently fails over to a stronger model on capacity errors; non-capacity errors re-raise |
@@ -395,12 +396,12 @@ The DSL-compiler suite is the one that matters most — it proves the LLM’s ou
 become safe, parameterized SQL.
 
 ```powershell
-# CRM (49 tests)
+# CRM (58 tests)
 cd apps/crm
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-dev.txt
 .\.venv\Scripts\python.exe -m pytest -q
 
-# Channel Service (16 tests)
+# Channel Service (19 tests)
 cd ../channel
 python -m pytest -q
 ```
@@ -414,8 +415,9 @@ python -m pytest -q
 | **Models** | `test_models.py` | 5 | SQLAlchemy models & relationships |
 | **API smoke** | `test_api_smoke.py` | 3 | App wiring, `/health`, segment preview validation |
 | **Dispatch payload** | `test_dispatch_payload.py` | 2 | CRM→Channel `/v1/send` body matches the channel contract |
-| **Channel Service** | `tests/` (6 files) | 16 | Lifecycle simulation, send API, HMAC signing, store idempotency, delivery, terminal flag |
-| | | **65** | **total** |
+| **Attribution** | `test_attribution.py` | 9 | Conversion→order seam, varied order values, campaign/message linkage |
+| **Channel Service** | `tests/` (7 files) | 19 | Lifecycle simulation, send API, HMAC signing, store idempotency, delivery, terminal flag, conversion value |
+| | | **77** | **total** |
 
 > Tests run with **no external dependencies** — the DB engine is created lazily and the agent uses a
 > scripted LLM stand-in, so the whole contract is unit-testable offline.

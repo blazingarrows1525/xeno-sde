@@ -8,8 +8,9 @@ we verify it, then fold every event through the pure state machine:
    - ``advance`` → move ``Message.current_state``, append the event, roll up ``CampaignStats``.
    - ``stale``   → duplicate / out-of-order: counted, never regresses state (idempotent).
    - ``illegal`` → impossible transition / unknown type: counted, ignored.
-3. ``sent`` accrues per-message send cost; ``converted`` attributes revenue — so ROAS on the
-   campaign page is computed from real events, not a stored guess.
+3. ``sent`` accrues per-message send cost; ``converted`` books a real, campaign-attributed
+   ``orders`` row (with the value the channel reports) and rolls its amount into revenue — so
+   ROAS on the campaign page is computed from real orders, not a stored guess.
 4. When every dispatched message has hit its terminal event, the campaign flips to ``completed``.
 
 We always return 2xx for a well-formed batch (even an all-duplicate one) so the channel's
@@ -32,7 +33,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import get_session
-from app.events.economics import CHANNEL_AOV, CHANNEL_COST, money
+from app.events.attribution import build_attributed_order, conversion_amount
+from app.events.economics import CHANNEL_COST, money
 from app.events.state_machine import decide
 from app.models.campaign import Campaign, CampaignStats, CommunicationEvent, Message
 
@@ -55,6 +57,7 @@ class ReceiptEvent(BaseModel):
     occurred_at: datetime
     provider_message_id: str | None = None
     terminal: bool = False
+    value: float | None = None  # order value reported on a `converted` event
     payload: dict | None = None
 
 
@@ -154,9 +157,12 @@ async def receive_receipts(
         if ev.event_type == "sent":
             d["send_cost"] += money(CHANNEL_COST[channel])
         elif ev.event_type == "converted":
-            rev = money(CHANNEL_AOV[channel])
-            msg.attributed_revenue = rev
-            d["revenue"] += rev
+            # A conversion books a real, campaign-attributed order with the value the channel
+            # reported; campaign revenue rolls up from these order rows, not a flat constant.
+            amount = conversion_amount(ev.value, channel)
+            msg.attributed_revenue = amount
+            session.add(build_attributed_order(msg, amount, ev.occurred_at))
+            d["revenue"] += amount
         if ev.terminal:
             settled_campaigns.add(msg.campaign_id)
 

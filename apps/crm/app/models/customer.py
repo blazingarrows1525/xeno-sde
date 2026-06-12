@@ -47,6 +47,18 @@ class Order(UUIDPKMixin, Base):
     status: Mapped[str] = mapped_column(String, server_default=text("'placed'"))
     ordered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
+    # Campaign attribution — set when this order is credited to a communication
+    # ("an order came because of this campaign"). NULL for organic orders. The denormalized
+    # customer rollups (total_spend/ltv) refresh on a schedule, so an attributed order row is
+    # the source of truth for campaign revenue and ROAS.
+    campaign_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("campaigns.id", ondelete="SET NULL"), index=True
+    )
+    attributed_message_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("messages.id", ondelete="SET NULL")
+    )
+    source: Mapped[str] = mapped_column(String, server_default=text("'organic'"))
+
     customer: Mapped["Customer"] = relationship(back_populates="orders")
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"

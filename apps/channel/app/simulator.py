@@ -22,6 +22,10 @@ CHANNEL_FUNNEL: dict[str, dict[str, float]] = {
 }
 DEFAULT_FUNNEL = CHANNEL_FUNNEL["email"]
 
+# Average order value per channel (INR). A conversion reports a realistic, right-skewed amount
+# around this — so the CRM books a real order with a varied value, not a flat constant.
+CHANNEL_AOV: dict[str, float] = {"whatsapp": 2800, "sms": 1900, "email": 3000, "rcs": 2600}
+
 # (stage, (min_delay, max_delay)) added on top of the previous event's delay, in seconds.
 _STAGES: list[tuple[str, tuple[float, float]]] = [
     ("delivered", (1, 8)),
@@ -32,11 +36,19 @@ _STAGES: list[tuple[str, tuple[float, float]]] = [
 ]
 
 
+def _order_value(channel: str, rng: random.Random) -> float:
+    """A right-skewed order value around the channel's AOV (median ~AOV, clamped 0.25x–4x)."""
+    base = CHANNEL_AOV.get(channel, 3000)
+    factor = min(4.0, max(0.25, rng.lognormvariate(0.0, 0.45)))
+    return round(base * factor, 2)
+
+
 @dataclass(frozen=True)
 class PlannedEvent:
     event_type: str
     sequence: int
     delay: float  # seconds from send (unscaled)
+    value: float | None = None  # order value, set only on a `converted` event
 
 
 def plan_lifecycle(channel: str, rng: random.Random, failure_rate: float) -> list[PlannedEvent]:
@@ -56,7 +68,8 @@ def plan_lifecycle(channel: str, rng: random.Random, failure_rate: float) -> lis
     for stage, (lo, hi) in _STAGES:
         if rng.random() < funnel[stage]:
             t += rng.uniform(lo, hi)
-            events.append(PlannedEvent(stage, seq, t))
+            value = _order_value(channel, rng) if stage == "converted" else None
+            events.append(PlannedEvent(stage, seq, t, value=value))
             seq += 1
         else:
             # A delivery miss surfaces as FAILED; later drop-offs are just silence.

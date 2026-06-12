@@ -71,18 +71,16 @@ async def run_lifecycle(
         await asyncio.sleep(max(0.0, event.delay - previous) * time_scale)
         previous = event.delay
         record.state = event.event_type
-        payload = {
-            "events": [
-                {
-                    "provider_message_id": record.provider_message_id,
-                    "message_id": record.message_id,
-                    "event_type": event.event_type,
-                    "sequence": event.sequence,
-                    "occurred_at": datetime.now(timezone.utc).isoformat(),
-                    # The last planned event ends this message's lifecycle — the CRM uses this
-                    # to know when every recipient has settled and the campaign is complete.
-                    "terminal": index == last_index,
-                }
-            ]
+        event_obj = {
+            "provider_message_id": record.provider_message_id,
+            "message_id": record.message_id,
+            "event_type": event.event_type,
+            "sequence": event.sequence,
+            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            # The last planned event ends this message's lifecycle — the CRM uses this
+            # to know when every recipient has settled and the campaign is complete.
+            "terminal": index == last_index,
         }
-        await post_callback(client, url, payload, secret, max_retries)
+        if event.value is not None:
+            event_obj["value"] = event.value  # order value reported on a conversion
+        await post_callback(client, url, {"events": [event_obj]}, secret, max_retries)
