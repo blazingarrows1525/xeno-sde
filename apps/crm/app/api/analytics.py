@@ -65,6 +65,7 @@ async def calibration(session: AsyncSession = Depends(get_session)) -> list[dict
         .where(Campaign.predicted_kpis.isnot(None))
         .where(Campaign.status == "completed")
         .where(CampaignStats.sent > 0)
+        .where(CampaignStats.converted > 0)  # no conversions → no ROAS signal to calibrate against
         .order_by(Campaign.created_at)
     )
     rows = await session.execute(q)
