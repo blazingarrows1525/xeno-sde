@@ -204,7 +204,7 @@ apps/
 │  │  ├─ events/        outbound dispatch · receipt state machine · send-sim fallback
 │  │  ├─ models/        SQLAlchemy models
 │  │  └─ core/          config (env + Neon URL normalization) · async DB engine
-│  ├─ scripts/          seed generators + backfill (seed, seed_campaigns, process_pending)
+│  ├─ scripts/          seed + backfill + migrations (seed, seed_campaigns, process_pending, migrate_orders_attribution)
 │  ├─ migrations/       Alembic
 │  └─ tests/            58 unit tests
 ├─ channel/             FastAPI — Channel Service (delivery lifecycle + HMAC callbacks), 19 tests

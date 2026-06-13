@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kairos — Web
 
-## Getting Started
+The Next.js front end for **Kairos**, an AI-native CRM. It renders the glass-box **agent console**
+(live reasoning over SSE), **campaigns**, **campaign detail**, **insights/calibration**, and the OAuth /
+demo **login gate**.
 
-First, run the development server:
+> Part of a monorepo. For the full picture see the [root README](../../README.md) and
+> [BLUEPRINT.md](../../BLUEPRINT.md). The backend lives in [`../crm`](../crm) and [`../channel`](../channel).
+
+## Stack
+
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19, TypeScript 5 |
+| Styling / motion | Tailwind CSS v4 + a small custom CSS spring system |
+| Data | TanStack Query 5 (server state), Recharts 3 (funnel & calibration charts) |
+| Auth | HMAC-signed cookie sessions (Web Crypto — runs in Edge + Node) + Google / GitHub OAuth + one-tap demo |
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+# .env.local → NEXT_PUBLIC_API_URL=http://127.0.0.1:8000   (unset → the UI serves bundled mock data)
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app talks to the CRM API at `NEXT_PUBLIC_API_URL`. Start that first (see [`../crm`](../crm)); without
+it, the UI falls back to bundled mock data so it still renders.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Required | Purpose |
+|----------|:--------:|---------|
+| `NEXT_PUBLIC_API_URL` | recommended | CRM base URL; unset → bundled mock data |
+| `NEXT_PUBLIC_BASE_URL` | prod | This app's public URL (used to build OAuth callbacks) |
+| `AUTH_SECRET` | prod | Signs the session cookie (any long random string) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional | Lights up the Google button |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | optional | Lights up the GitHub button |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Structure
 
-## Learn More
+```
+app/          App-Router routes (console, campaigns/[id], insights) + /api/auth handlers
+components/    design system, charts, reasoning trace, app shell
+lib/           typed API client · auth (HMAC cookie) · types · mock fallback
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command | Does |
+|---------|------|
+| `npm run dev` | Start the dev server (Turbopack) |
+| `npm run build` | Production build — **don't run while `dev` is live** (shared `.next` cache can corrupt) |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint |
