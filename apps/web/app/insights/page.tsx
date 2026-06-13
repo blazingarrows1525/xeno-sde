@@ -12,8 +12,12 @@ import { inr, roasX } from "@/lib/format";
 const Loading = () => <ChartSkeleton />;
 
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+// Per-campaign forecast error, clamped to [0,1] so a single wild miss can't drive accuracy
+// negative or let one noisy campaign dominate the headline.
 const errOf = (p: { predictedRoas: number; actualRoas: number }) =>
-  Math.abs(p.predictedRoas - p.actualRoas) / (p.predictedRoas || 1);
+  Math.min(1, Math.abs(p.predictedRoas - p.actualRoas) / (p.predictedRoas || 1));
+const accOf = (p: { predictedRoas: number; actualRoas: number }) => (1 - errOf(p)) * 100;
+const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
 export default function InsightsPage() {
   const roi = useQuery({ queryKey: ["roi"], queryFn: getChannelRoi });
@@ -25,8 +29,10 @@ export default function InsightsPage() {
     sum.data && sum.data.totalSent > 0 ? sum.data.totalConverted / sum.data.totalSent : 0;
 
   const cd = cal.data ?? [];
-  const accuracyNow = cd.length ? (1 - errOf(cd[cd.length - 1])) * 100 : 0;
-  const accuracyFirst = cd.length ? (1 - errOf(cd[0])) * 100 : 0;
+  // "Now" = average forecast accuracy across completed campaigns (robust — one noisy live
+  // launch can't tank it); "first" = the earliest campaign. The gap is the learning story.
+  const accuracyNow = cd.length ? mean(cd.map(accOf)) : 0;
+  const accuracyFirst = cd.length ? accOf(cd[0]) : 0;
   const improvement = accuracyNow - accuracyFirst;
 
   return (

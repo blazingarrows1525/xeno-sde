@@ -54,12 +54,16 @@ async def channel_roi(session: AsyncSession = Depends(get_session)) -> list[dict
 async def calibration(session: AsyncSession = Depends(get_session)) -> list[dict]:
     """Predicted vs actual ROAS per campaign — the calibration line chart.
 
-    Only includes campaigns that have both predicted KPIs and actual stats.
+    Only **completed** campaigns are calibration points: an in-flight campaign hasn't
+    settled, so its "actual" ROAS is still 0 and would wrongly read as a missed forecast.
+    Restricting to ``status == "completed"`` keeps the chart (and the accuracy headline it
+    feeds) honest and stable while live campaigns are still sending.
     """
     q = (
         select(Campaign, CampaignStats)
         .join(CampaignStats, CampaignStats.campaign_id == Campaign.id)
         .where(Campaign.predicted_kpis.isnot(None))
+        .where(Campaign.status == "completed")
         .where(CampaignStats.sent > 0)
         .order_by(Campaign.created_at)
     )
