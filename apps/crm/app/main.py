@@ -31,4 +31,4 @@ app.include_router(agent.router, prefix="/v1")
 
 @app.get("/health", tags=["meta"])
 async def health() -> dict[str, str]:
-    return {"status": "ok", "service": "kairos-crm", "env": settings.environment}
+    return {"status": "ok", "service": "kairos-crm"}
