@@ -6,7 +6,7 @@
 
 State a goal in plain English — *“Win back customers who haven’t ordered in 60 days”* — and Kairos
 analyses your shoppers, builds an audience, recommends a channel, **predicts the outcome before
-sending**, waits for your approval, runs the campaign, and **calibrates** as real events arrive.
+sending**, waits for your approval, runs the campaign, and **calibrates** as all the real events arrive.
 
 <br/>
 
